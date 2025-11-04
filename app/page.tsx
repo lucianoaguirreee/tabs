@@ -12,6 +12,8 @@ type TabData = {
   columnSplit: number;
   leftColumnRowSplit: number;
   rightColumnRowSplit: number;
+  topRowColumnSplit: number;
+  bottomRowColumnSplit: number;
 };
 
 const createNewTabData = (id: string, name: string): TabData => ({
@@ -21,6 +23,8 @@ const createNewTabData = (id: string, name: string): TabData => ({
   columnSplit: 50,
   leftColumnRowSplit: 50,
   rightColumnRowSplit: 50,
+  topRowColumnSplit: 50,
+  bottomRowColumnSplit: 50,
 });
 
 export default function Home() {
@@ -36,12 +40,15 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const leftColumnRef = useRef<HTMLDivElement>(null);
   const rightColumnRef = useRef<HTMLDivElement>(null);
+  const topRowRef = useRef<HTMLDivElement>(null);
+  const bottomRowRef = useRef<HTMLDivElement>(null);
 
   const [isDraggingVertical, setIsDraggingVertical] = useState(false);
   const [isDraggingLeftHorizontal, setIsDraggingLeftHorizontal] = useState(false);
   const [isDraggingRightHorizontal, setIsDraggingRightHorizontal] = useState(false);
+  const [isDraggingTopRowVertical, setIsDraggingTopRowVertical] = useState(false);
+  const [isDraggingBottomRowVertical, setIsDraggingBottomRowVertical] = useState(false);
 
-  // Actualizar el tab activo
   const updateActiveTab = (updates: Partial<Omit<TabData, 'id' | 'name'>>) => {
     setTabs((prevTabs) =>
       prevTabs.map((tab) =>
@@ -50,7 +57,6 @@ export default function Home() {
     );
   };
 
-  // Crear nuevo tab
   const createNewTab = () => {
     const newTabNumber = tabs.length + 1;
     const newTab = createNewTabData(`tab-${Date.now()}`, `Tab ${newTabNumber}`);
@@ -58,14 +64,12 @@ export default function Home() {
     setActiveTabId(newTab.id);
   };
 
-  // Cerrar tab
   const closeTab = (tabId: string) => {
-    if (tabs.length === 1) return; // No cerrar el último tab
+    if (tabs.length === 1) return;
 
     const newTabs = tabs.filter((t) => t.id !== tabId);
     setTabs(newTabs);
 
-    // Si cerramos el tab activo, activar el anterior o el primero
     if (activeTabId === tabId) {
       const currentIndex = tabs.findIndex((t) => t.id === tabId);
       const newActiveTab = newTabs[Math.max(0, currentIndex - 1)];
@@ -201,20 +205,50 @@ export default function Home() {
     );
   }, [activeTabId]);
 
+  const handleTopRowVerticalDrag = useCallback((e: MouseEvent) => {
+    if (!topRowRef.current) return;
+    const rect = topRowRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = (x / rect.width) * 100;
+    const clampedPercentage = Math.max(20, Math.min(80, percentage));
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === activeTabId ? { ...tab, topRowColumnSplit: clampedPercentage } : tab
+      )
+    );
+  }, [activeTabId]);
+
+  const handleBottomRowVerticalDrag = useCallback((e: MouseEvent) => {
+    if (!bottomRowRef.current) return;
+    const rect = bottomRowRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = (x / rect.width) * 100;
+    const clampedPercentage = Math.max(20, Math.min(80, percentage));
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === activeTabId ? { ...tab, bottomRowColumnSplit: clampedPercentage } : tab
+      )
+    );
+  }, [activeTabId]);
+
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isDraggingVertical) handleVerticalDrag(e);
     if (isDraggingLeftHorizontal) handleLeftHorizontalDrag(e);
     if (isDraggingRightHorizontal) handleRightHorizontalDrag(e);
-  }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, handleVerticalDrag, handleLeftHorizontalDrag, handleRightHorizontalDrag]);
+    if (isDraggingTopRowVertical) handleTopRowVerticalDrag(e);
+    if (isDraggingBottomRowVertical) handleBottomRowVerticalDrag(e);
+  }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, isDraggingTopRowVertical, isDraggingBottomRowVertical, handleVerticalDrag, handleLeftHorizontalDrag, handleRightHorizontalDrag, handleTopRowVerticalDrag, handleBottomRowVerticalDrag]);
 
   const handleMouseUp = useCallback(() => {
     setIsDraggingVertical(false);
     setIsDraggingLeftHorizontal(false);
     setIsDraggingRightHorizontal(false);
+    setIsDraggingTopRowVertical(false);
+    setIsDraggingBottomRowVertical(false);
   }, []);
 
   useEffect(() => {
-    if (isDraggingVertical || isDraggingLeftHorizontal || isDraggingRightHorizontal) {
+    if (isDraggingVertical || isDraggingLeftHorizontal || isDraggingRightHorizontal || isDraggingTopRowVertical || isDraggingBottomRowVertical) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
       return () => {
@@ -222,7 +256,7 @@ export default function Home() {
         window.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, handleMouseMove, handleMouseUp]);
+  }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, isDraggingTopRowVertical, isDraggingBottomRowVertical, handleMouseMove, handleMouseUp]);
 
   const getExpansionOptions = (tabId: TabId) => {
     const options: { direction: string; targetTab: TabId; icon: string; label: string }[] = [];
@@ -311,38 +345,42 @@ export default function Home() {
         <div ref={containerRef} className="relative h-full flex gap-2">
           {has12 ? (
             <div className="flex flex-col w-full gap-2">
+              {/* Fila superior: 1-2 merged */}
               <div className="h-1/2">
                 {renderTab(group1, groupIndex1)}
               </div>
-              <div className="h-1/2 flex gap-2">
-                <div style={{ width: `${activeTab.columnSplit}%` }}>
+              {/* Fila inferior: 3 y 4 separadas */}
+              <div ref={bottomRowRef} className="relative h-1/2 flex gap-2">
+                <div style={{ width: `${activeTab.bottomRowColumnSplit}%` }}>
                   {renderTab(group3, groupIndex3)}
                 </div>
                 <div
-                  className="absolute top-1/2 h-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
-                  style={{ left: `${activeTab.columnSplit}%`, bottom: 0 }}
-                  onMouseDown={() => setIsDraggingVertical(true)}
+                  className="absolute top-0 bottom-0 w-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
+                  style={{ left: `${activeTab.bottomRowColumnSplit}%` }}
+                  onMouseDown={() => setIsDraggingBottomRowVertical(true)}
                 />
-                <div style={{ width: `${100 - activeTab.columnSplit}%` }}>
+                <div style={{ width: `${100 - activeTab.bottomRowColumnSplit}%` }}>
                   {renderTab(group4, groupIndex4)}
                 </div>
               </div>
             </div>
           ) : has34 ? (
             <div className="flex flex-col w-full gap-2">
-              <div className="h-1/2 flex gap-2">
-                <div style={{ width: `${activeTab.columnSplit}%` }}>
+              {/* Fila superior: 1 y 2 separadas */}
+              <div ref={topRowRef} className="relative h-1/2 flex gap-2">
+                <div style={{ width: `${activeTab.topRowColumnSplit}%` }}>
                   {renderTab(group1, groupIndex1)}
                 </div>
                 <div
-                  className="absolute top-0 h-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
-                  style={{ left: `${activeTab.columnSplit}%`, height: '50%' }}
-                  onMouseDown={() => setIsDraggingVertical(true)}
+                  className="absolute top-0 bottom-0 w-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
+                  style={{ left: `${activeTab.topRowColumnSplit}%` }}
+                  onMouseDown={() => setIsDraggingTopRowVertical(true)}
                 />
-                <div style={{ width: `${100 - activeTab.columnSplit}%` }}>
+                <div style={{ width: `${100 - activeTab.topRowColumnSplit}%` }}>
                   {renderTab(group2, groupIndex2)}
                 </div>
               </div>
+              {/* Fila inferior: 3-4 merged */}
               <div className="h-1/2">
                 {renderTab(group3, groupIndex3)}
               </div>
