@@ -13,13 +13,18 @@ export default function Home() {
     [4],
   ]);
 
-  // Estado para resize: porcentajes de la primera columna y primera fila
-  const [columnSplit, setColumnSplit] = useState(50); // % para primera columna
-  const [rowSplit, setRowSplit] = useState(50); // % para primera fila
+  // Estado para resize
+  const [columnSplit, setColumnSplit] = useState(50); // % para dividir columnas
+  const [leftColumnRowSplit, setLeftColumnRowSplit] = useState(50); // % para dividir 1 y 3
+  const [rightColumnRowSplit, setRightColumnRowSplit] = useState(50); // % para dividir 2 y 4
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isDraggingVertical, setIsDraggingVertical] = useState(false);
-  const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
+  const leftColumnRef = useRef<HTMLDivElement>(null);
+  const rightColumnRef = useRef<HTMLDivElement>(null);
+
+  const [isDraggingVertical, setIsDraggingVertical] = useState(false); // handle vertical (columnas)
+  const [isDraggingLeftHorizontal, setIsDraggingLeftHorizontal] = useState(false); // handle horizontal izquierdo
+  const [isDraggingRightHorizontal, setIsDraggingRightHorizontal] = useState(false); // handle horizontal derecho
 
   const findGroupIndex = (tabId: TabId): number => {
     return mergedGroups.findIndex((group) => group.includes(tabId));
@@ -135,47 +140,7 @@ export default function Home() {
     return colors[tabId];
   };
 
-  const getGridPosition = (group: MergedGroup): string => {
-    const hasTab1 = group.includes(1);
-    const hasTab2 = group.includes(2);
-    const hasTab3 = group.includes(3);
-    const hasTab4 = group.includes(4);
-
-    // Si tiene todas las pestañas (4)
-    if (group.length === 4) {
-      return "col-span-2 row-span-2";
-    }
-
-    // Si tiene 3 pestañas
-    if (group.length === 3) {
-      // Cualquier grupo de 3 ocupa todo el espacio
-      return "col-span-2 row-span-2";
-    }
-
-    // Si tiene 2 pestañas
-    if (group.length === 2) {
-      // Vertical izquierda (1,3)
-      if (hasTab1 && hasTab3) return "col-start-1 col-span-1 row-span-2";
-      // Vertical derecha (2,4)
-      if (hasTab2 && hasTab4) return "col-start-2 col-span-1 row-span-2";
-      // Horizontal arriba (1,2)
-      if (hasTab1 && hasTab2) return "col-span-2 row-start-1 row-span-1";
-      // Horizontal abajo (3,4)
-      if (hasTab3 && hasTab4) return "col-span-2 row-start-2 row-span-1";
-      // Diagonal u otro caso
-      return "col-span-2 row-span-2";
-    }
-
-    // Posición individual (1 pestaña)
-    if (hasTab1) return "col-start-1 row-start-1";
-    if (hasTab2) return "col-start-2 row-start-1";
-    if (hasTab3) return "col-start-1 row-start-2";
-    if (hasTab4) return "col-start-2 row-start-2";
-
-    return "";
-  };
-
-  // Manejo de resize vertical (columnas)
+  // Manejo de resize vertical (entre columnas)
   const handleVerticalDrag = useCallback((e: MouseEvent) => {
     if (!containerRef.current) return;
 
@@ -188,17 +153,30 @@ export default function Home() {
     setColumnSplit(clampedPercentage);
   }, []);
 
-  // Manejo de resize horizontal (filas)
-  const handleHorizontalDrag = useCallback((e: MouseEvent) => {
-    if (!containerRef.current) return;
+  // Manejo de resize horizontal columna izquierda (entre 1 y 3)
+  const handleLeftHorizontalDrag = useCallback((e: MouseEvent) => {
+    if (!leftColumnRef.current) return;
 
-    const rect = containerRef.current.getBoundingClientRect();
+    const rect = leftColumnRef.current.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const percentage = (y / rect.height) * 100;
 
     // Limitar entre 20% y 80%
     const clampedPercentage = Math.max(20, Math.min(80, percentage));
-    setRowSplit(clampedPercentage);
+    setLeftColumnRowSplit(clampedPercentage);
+  }, []);
+
+  // Manejo de resize horizontal columna derecha (entre 2 y 4)
+  const handleRightHorizontalDrag = useCallback((e: MouseEvent) => {
+    if (!rightColumnRef.current) return;
+
+    const rect = rightColumnRef.current.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const percentage = (y / rect.height) * 100;
+
+    // Limitar entre 20% y 80%
+    const clampedPercentage = Math.max(20, Math.min(80, percentage));
+    setRightColumnRowSplit(clampedPercentage);
   }, []);
 
   // Event listeners para drag
@@ -206,19 +184,23 @@ export default function Home() {
     if (isDraggingVertical) {
       handleVerticalDrag(e);
     }
-    if (isDraggingHorizontal) {
-      handleHorizontalDrag(e);
+    if (isDraggingLeftHorizontal) {
+      handleLeftHorizontalDrag(e);
     }
-  }, [isDraggingVertical, isDraggingHorizontal, handleVerticalDrag, handleHorizontalDrag]);
+    if (isDraggingRightHorizontal) {
+      handleRightHorizontalDrag(e);
+    }
+  }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, handleVerticalDrag, handleLeftHorizontalDrag, handleRightHorizontalDrag]);
 
   const handleMouseUp = useCallback(() => {
     setIsDraggingVertical(false);
-    setIsDraggingHorizontal(false);
+    setIsDraggingLeftHorizontal(false);
+    setIsDraggingRightHorizontal(false);
   }, []);
 
   // Agregar/remover event listeners
   useEffect(() => {
-    if (isDraggingVertical || isDraggingHorizontal) {
+    if (isDraggingVertical || isDraggingLeftHorizontal || isDraggingRightHorizontal) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
       return () => {
@@ -226,12 +208,89 @@ export default function Home() {
         window.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDraggingVertical, isDraggingHorizontal, handleMouseMove, handleMouseUp]);
+  }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, handleMouseMove, handleMouseUp]);
+
+  // Funciones auxiliares para renderizado
+  const getTabsInPosition = (position: TabId): MergedGroup | null => {
+    const group = mergedGroups.find(g => g.includes(position));
+    if (!group) return null;
+
+    // Si el grupo solo contiene esta pestaña, retornarlo
+    if (group.length === 1 && group[0] === position) return group;
+
+    // Si el grupo contiene múltiples pestañas
+    if (group.length > 1) {
+      // Para pestañas 1 y 2, retornar el grupo si contiene ambas (1-2)
+      if (position === 1 || position === 2) {
+        if (group.includes(1) && group.includes(2)) return group;
+      }
+      // Para pestañas 3 y 4, retornar el grupo si contiene ambas (3-4)
+      if (position === 3 || position === 4) {
+        if (group.includes(3) && group.includes(4)) return group;
+      }
+      // Para pestañas 1 y 3, retornar el grupo si contiene ambas (1-3)
+      if (position === 1 || position === 3) {
+        if (group.includes(1) && group.includes(3)) return group;
+      }
+      // Para pestañas 2 y 4, retornar el grupo si contiene ambas (2-4)
+      if (position === 2 || position === 4) {
+        if (group.includes(2) && group.includes(4)) return group;
+      }
+      // Si contiene 3 o 4 pestañas
+      if (group.length >= 3) return group;
+    }
+
+    // Si solo contiene esta pestaña individual
+    if (group.includes(position)) return group;
+
+    return null;
+  };
+
+  const renderTab = (group: MergedGroup | null, groupIndex: number) => {
+    if (!group) return null;
+
+    return (
+      <div
+        className={`flex flex-col items-center justify-center rounded-lg h-full ${
+          group.length === 1 ? getTabColor(group[0]) : "bg-gradient-to-br from-blue-500 via-purple-500 to-orange-500"
+        }`}
+      >
+        <div className="text-4xl font-bold text-white">
+          {group.length === 1
+            ? `Pestaña ${group[0]}`
+            : `Pestañas ${group.join(", ")}`}
+        </div>
+        {group.length > 1 && (
+          <button
+            onClick={() => splitGroup(groupIndex)}
+            className="mt-4 rounded bg-white px-4 py-2 text-black hover:bg-gray-200"
+          >
+            Separar
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  // Obtener grupos para cada posición
+  const tab1Group = getTabsInPosition(1);
+  const tab2Group = getTabsInPosition(2);
+  const tab3Group = getTabsInPosition(3);
+  const tab4Group = getTabsInPosition(4);
+
+  const tab1GroupIndex = tab1Group ? findGroupIndex(tab1Group[0]) : -1;
+  const tab2GroupIndex = tab2Group ? findGroupIndex(tab2Group[0]) : -1;
+  const tab3GroupIndex = tab3Group ? findGroupIndex(tab3Group[0]) : -1;
+  const tab4GroupIndex = tab4Group ? findGroupIndex(tab4Group[0]) : -1;
+
+  // Verificar si las columnas están merged verticalmente
+  const isLeftColumnMerged = tab1Group && tab1Group.includes(1) && tab1Group.includes(3);
+  const isRightColumnMerged = tab2Group && tab2Group.includes(2) && tab2Group.includes(4);
 
   return (
     <div className="flex h-screen w-full flex-col bg-zinc-900 p-4">
       <h1 className="mb-4 text-2xl font-bold text-white">
-        Sistema de Pestañas 2x2 con Resize
+        Sistema de Pestañas 2x2 con Resize Independiente
       </h1>
 
       {/* Controles de merge */}
@@ -267,7 +326,8 @@ export default function Home() {
         <button
           onClick={() => {
             setColumnSplit(50);
-            setRowSplit(50);
+            setLeftColumnRowSplit(50);
+            setRightColumnRowSplit(50);
           }}
           className="rounded bg-gray-600 px-4 py-2 text-white hover:bg-gray-500"
         >
@@ -275,56 +335,73 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Grid de pestañas con resize */}
+      {/* Grid de pestañas con resize independiente */}
       <div
         ref={containerRef}
-        className="relative flex-1"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: `${columnSplit}% ${100 - columnSplit}%`,
-          gridTemplateRows: `${rowSplit}% ${100 - rowSplit}%`,
-          gap: '0.5rem',
-        }}
+        className="relative flex flex-1 gap-2"
       >
-        {mergedGroups.map((group, groupIndex) => {
-          const gridPosition = getGridPosition(group);
-          return (
-            <div
-              key={groupIndex}
-              className={`relative flex flex-col items-center justify-center rounded-lg ${gridPosition} ${
-                group.length === 1 ? getTabColor(group[0]) : "bg-gradient-to-br from-blue-500 via-purple-500 to-orange-500"
-              }`}
-            >
-              <div className="text-4xl font-bold text-white">
-                {group.length === 1
-                  ? `Pestaña ${group[0]}`
-                  : `Pestañas ${group.join(", ")}`}
-              </div>
-              {group.length > 1 && (
-                <button
-                  onClick={() => splitGroup(groupIndex)}
-                  className="mt-4 rounded bg-white px-4 py-2 text-black hover:bg-gray-200"
-                >
-                  Separar
-                </button>
-              )}
-            </div>
-          );
-        })}
-
-        {/* Resize handle vertical (columnas) */}
+        {/* Columna izquierda (1 y 3) */}
         <div
-          className="absolute top-0 bottom-0 w-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-10 -translate-x-1/2"
+          ref={leftColumnRef}
+          className="relative flex flex-col gap-2"
+          style={{ width: `${columnSplit}%` }}
+        >
+          {/* Pestaña 1 */}
+          <div style={{ height: `${leftColumnRowSplit}%` }}>
+            {renderTab(tab1Group, tab1GroupIndex)}
+          </div>
+
+          {/* Handle horizontal para columna izquierda */}
+          {!isLeftColumnMerged && (
+            <div
+              className="absolute left-0 right-0 h-2 bg-zinc-700 hover:bg-green-500 cursor-row-resize z-10 -translate-y-1/2"
+              style={{ top: `${leftColumnRowSplit}%` }}
+              onMouseDown={() => setIsDraggingLeftHorizontal(true)}
+            />
+          )}
+
+          {/* Pestaña 3 */}
+          {!isLeftColumnMerged && (
+            <div style={{ height: `${100 - leftColumnRowSplit}%` }}>
+              {renderTab(tab3Group, tab3GroupIndex)}
+            </div>
+          )}
+        </div>
+
+        {/* Resize handle vertical (entre columnas) */}
+        <div
+          className="absolute top-0 bottom-0 w-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
           style={{ left: `${columnSplit}%` }}
           onMouseDown={() => setIsDraggingVertical(true)}
         />
 
-        {/* Resize handle horizontal (filas) */}
+        {/* Columna derecha (2 y 4) */}
         <div
-          className="absolute left-0 right-0 h-2 bg-zinc-700 hover:bg-blue-500 cursor-row-resize z-10 -translate-y-1/2"
-          style={{ top: `${rowSplit}%` }}
-          onMouseDown={() => setIsDraggingHorizontal(true)}
-        />
+          ref={rightColumnRef}
+          className="relative flex flex-col gap-2"
+          style={{ width: `${100 - columnSplit}%` }}
+        >
+          {/* Pestaña 2 */}
+          <div style={{ height: `${rightColumnRowSplit}%` }}>
+            {renderTab(tab2Group, tab2GroupIndex)}
+          </div>
+
+          {/* Handle horizontal para columna derecha */}
+          {!isRightColumnMerged && (
+            <div
+              className="absolute left-0 right-0 h-2 bg-zinc-700 hover:bg-purple-500 cursor-row-resize z-10 -translate-y-1/2"
+              style={{ top: `${rightColumnRowSplit}%` }}
+              onMouseDown={() => setIsDraggingRightHorizontal(true)}
+            />
+          )}
+
+          {/* Pestaña 4 */}
+          {!isRightColumnMerged && (
+            <div style={{ height: `${100 - rightColumnRowSplit}%` }}>
+              {renderTab(tab4Group, tab4GroupIndex)}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Información de estado */}
@@ -340,7 +417,9 @@ export default function Home() {
           <div>
             <p className="text-sm">Tamaños:</p>
             <pre className="text-xs">
-              {`Columna 1: ${columnSplit.toFixed(1)}%\nColumna 2: ${(100 - columnSplit).toFixed(1)}%\nFila 1: ${rowSplit.toFixed(1)}%\nFila 2: ${(100 - rowSplit).toFixed(1)}%`}
+              {`Columnas: ${columnSplit.toFixed(1)}% | ${(100 - columnSplit).toFixed(1)}%
+Izq (1-3): ${leftColumnRowSplit.toFixed(1)}% | ${(100 - leftColumnRowSplit).toFixed(1)}%
+Der (2-4): ${rightColumnRowSplit.toFixed(1)}% | ${(100 - rightColumnRowSplit).toFixed(1)}%`}
             </pre>
           </div>
         </div>
