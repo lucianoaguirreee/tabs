@@ -5,17 +5,33 @@ import { useState, useRef, useCallback, useEffect } from "react";
 type TabId = 1 | 2 | 3 | 4;
 type MergedGroup = TabId[];
 
-export default function Home() {
-  const [mergedGroups, setMergedGroups] = useState<MergedGroup[]>([
-    [1],
-    [2],
-    [3],
-    [4],
-  ]);
+type TabData = {
+  id: string;
+  name: string;
+  mergedGroups: MergedGroup[];
+  columnSplit: number;
+  leftColumnRowSplit: number;
+  rightColumnRowSplit: number;
+};
 
-  const [columnSplit, setColumnSplit] = useState(50);
-  const [leftColumnRowSplit, setLeftColumnRowSplit] = useState(50);
-  const [rightColumnRowSplit, setRightColumnRowSplit] = useState(50);
+const createNewTabData = (id: string, name: string): TabData => ({
+  id,
+  name,
+  mergedGroups: [[1], [2], [3], [4]],
+  columnSplit: 50,
+  leftColumnRowSplit: 50,
+  rightColumnRowSplit: 50,
+});
+
+export default function Home() {
+  const [tabs, setTabs] = useState<TabData[]>([
+    createNewTabData("tab-1", "Tab 1"),
+    createNewTabData("tab-2", "Tab 2"),
+    createNewTabData("tab-3", "Tab 3"),
+  ]);
+  const [activeTabId, setActiveTabId] = useState("tab-1");
+
+  const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
 
   const containerRef = useRef<HTMLDivElement>(null);
   const leftColumnRef = useRef<HTMLDivElement>(null);
@@ -25,12 +41,44 @@ export default function Home() {
   const [isDraggingLeftHorizontal, setIsDraggingLeftHorizontal] = useState(false);
   const [isDraggingRightHorizontal, setIsDraggingRightHorizontal] = useState(false);
 
+  // Actualizar el tab activo
+  const updateActiveTab = (updates: Partial<Omit<TabData, 'id' | 'name'>>) => {
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === activeTabId ? { ...tab, ...updates } : tab
+      )
+    );
+  };
+
+  // Crear nuevo tab
+  const createNewTab = () => {
+    const newTabNumber = tabs.length + 1;
+    const newTab = createNewTabData(`tab-${Date.now()}`, `Tab ${newTabNumber}`);
+    setTabs([...tabs, newTab]);
+    setActiveTabId(newTab.id);
+  };
+
+  // Cerrar tab
+  const closeTab = (tabId: string) => {
+    if (tabs.length === 1) return; // No cerrar el último tab
+
+    const newTabs = tabs.filter((t) => t.id !== tabId);
+    setTabs(newTabs);
+
+    // Si cerramos el tab activo, activar el anterior o el primero
+    if (activeTabId === tabId) {
+      const currentIndex = tabs.findIndex((t) => t.id === tabId);
+      const newActiveTab = newTabs[Math.max(0, currentIndex - 1)];
+      setActiveTabId(newActiveTab.id);
+    }
+  };
+
   const findGroupIndex = (tabId: TabId): number => {
-    return mergedGroups.findIndex((group) => group.includes(tabId));
+    return activeTab.mergedGroups.findIndex((group) => group.includes(tabId));
   };
 
   const findGroupByTab = (tabId: TabId): MergedGroup | undefined => {
-    return mergedGroups.find((group) => group.includes(tabId));
+    return activeTab.mergedGroups.find((group) => group.includes(tabId));
   };
 
   const canMerge = (tab1: TabId, tab2: TabId): boolean => {
@@ -81,27 +129,27 @@ export default function Home() {
     const group1Index = findGroupIndex(tab1);
     const group2Index = findGroupIndex(tab2);
 
-    const newGroups = mergedGroups.filter(
+    const newGroups = activeTab.mergedGroups.filter(
       (_, index) => index !== group1Index && index !== group2Index
     );
     const mergedGroup = [
-      ...mergedGroups[group1Index],
-      ...mergedGroups[group2Index],
+      ...activeTab.mergedGroups[group1Index],
+      ...activeTab.mergedGroups[group2Index],
     ].sort((a, b) => a - b);
 
     newGroups.push(mergedGroup);
-    setMergedGroups(newGroups);
+    updateActiveTab({ mergedGroups: newGroups });
   };
 
   const splitGroup = (groupIndex: number) => {
-    const group = mergedGroups[groupIndex];
+    const group = activeTab.mergedGroups[groupIndex];
     if (group.length <= 1) return;
 
-    const newGroups = mergedGroups.filter((_, index) => index !== groupIndex);
+    const newGroups = activeTab.mergedGroups.filter((_, index) => index !== groupIndex);
     group.forEach((tabId) => {
       newGroups.push([tabId]);
     });
-    setMergedGroups(newGroups);
+    updateActiveTab({ mergedGroups: newGroups });
   };
 
   const getTabColor = (tabId: TabId): string => {
@@ -120,8 +168,12 @@ export default function Home() {
     const x = e.clientX - rect.left;
     const percentage = (x / rect.width) * 100;
     const clampedPercentage = Math.max(20, Math.min(80, percentage));
-    setColumnSplit(clampedPercentage);
-  }, []);
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === activeTabId ? { ...tab, columnSplit: clampedPercentage } : tab
+      )
+    );
+  }, [activeTabId]);
 
   const handleLeftHorizontalDrag = useCallback((e: MouseEvent) => {
     if (!leftColumnRef.current) return;
@@ -129,8 +181,12 @@ export default function Home() {
     const y = e.clientY - rect.top;
     const percentage = (y / rect.height) * 100;
     const clampedPercentage = Math.max(20, Math.min(80, percentage));
-    setLeftColumnRowSplit(clampedPercentage);
-  }, []);
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === activeTabId ? { ...tab, leftColumnRowSplit: clampedPercentage } : tab
+      )
+    );
+  }, [activeTabId]);
 
   const handleRightHorizontalDrag = useCallback((e: MouseEvent) => {
     if (!rightColumnRef.current) return;
@@ -138,8 +194,12 @@ export default function Home() {
     const y = e.clientY - rect.top;
     const percentage = (y / rect.height) * 100;
     const clampedPercentage = Math.max(20, Math.min(80, percentage));
-    setRightColumnRowSplit(clampedPercentage);
-  }, []);
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === activeTabId ? { ...tab, rightColumnRowSplit: clampedPercentage } : tab
+      )
+    );
+  }, [activeTabId]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isDraggingVertical) handleVerticalDrag(e);
@@ -164,7 +224,6 @@ export default function Home() {
     }
   }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, handleMouseMove, handleMouseUp]);
 
-  // Obtener direcciones de expansión disponibles para cada pestaña
   const getExpansionOptions = (tabId: TabId) => {
     const options: { direction: string; targetTab: TabId; icon: string; label: string }[] = [];
 
@@ -200,10 +259,8 @@ export default function Home() {
           {group.length === 1 ? `${group[0]}` : group.join(" + ")}
         </div>
 
-        {/* Botones de expansión/separación */}
         <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           {isGrouped ? (
-            /* Botón de separar */
             <button
               onClick={() => splitGroup(groupIndex)}
               className="flex items-center gap-2 rounded-lg bg-white/90 hover:bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-lg backdrop-blur transition-all hover:scale-105"
@@ -213,7 +270,6 @@ export default function Home() {
               <span>Separar</span>
             </button>
           ) : (
-            /* Botones de expandir */
             <>
               {getExpansionOptions(group[0]).map((option) => (
                 <button
@@ -233,7 +289,6 @@ export default function Home() {
     );
   };
 
-  // Detectar grupos
   const group1 = findGroupByTab(1);
   const group2 = findGroupByTab(2);
   const group3 = findGroupByTab(3);
@@ -250,111 +305,147 @@ export default function Home() {
   const groupIndex4 = group4 ? findGroupIndex(group4[0]) : -1;
 
   return (
-    <div className="flex h-screen w-full flex-col bg-zinc-900 p-4">
+    <div className="flex h-screen w-full flex-col bg-zinc-900">
       {/* Grid principal */}
-      <div ref={containerRef} className="relative flex-1 flex gap-2">
-        {/* CASO 1: Merge horizontal 1-2 arriba */}
-        {has12 ? (
-          <div className="flex flex-col w-full gap-2">
-            <div className="h-1/2">
-              {renderTab(group1, groupIndex1)}
-            </div>
-            <div className="h-1/2 flex gap-2">
-              <div style={{ width: `${columnSplit}%` }}>
-                {renderTab(group3, groupIndex3)}
-              </div>
-              <div
-                className="absolute top-1/2 h-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
-                style={{ left: `${columnSplit}%`, bottom: 0 }}
-                onMouseDown={() => setIsDraggingVertical(true)}
-              />
-              <div style={{ width: `${100 - columnSplit}%` }}>
-                {renderTab(group4, groupIndex4)}
-              </div>
-            </div>
-          </div>
-        ) : has34 ? (
-          /* CASO 2: Merge horizontal 3-4 abajo */
-          <div className="flex flex-col w-full gap-2">
-            <div className="h-1/2 flex gap-2">
-              <div style={{ width: `${columnSplit}%` }}>
+      <div className="flex-1 p-4 pb-0">
+        <div ref={containerRef} className="relative h-full flex gap-2">
+          {has12 ? (
+            <div className="flex flex-col w-full gap-2">
+              <div className="h-1/2">
                 {renderTab(group1, groupIndex1)}
               </div>
-              <div
-                className="absolute top-0 h-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
-                style={{ left: `${columnSplit}%`, height: '50%' }}
-                onMouseDown={() => setIsDraggingVertical(true)}
-              />
-              <div style={{ width: `${100 - columnSplit}%` }}>
-                {renderTab(group2, groupIndex2)}
+              <div className="h-1/2 flex gap-2">
+                <div style={{ width: `${activeTab.columnSplit}%` }}>
+                  {renderTab(group3, groupIndex3)}
+                </div>
+                <div
+                  className="absolute top-1/2 h-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
+                  style={{ left: `${activeTab.columnSplit}%`, bottom: 0 }}
+                  onMouseDown={() => setIsDraggingVertical(true)}
+                />
+                <div style={{ width: `${100 - activeTab.columnSplit}%` }}>
+                  {renderTab(group4, groupIndex4)}
+                </div>
               </div>
             </div>
-            <div className="h-1/2">
-              {renderTab(group3, groupIndex3)}
-            </div>
-          </div>
-        ) : (
-          /* CASO 3: Layout por columnas */
-          <>
-            <div
-              ref={leftColumnRef}
-              className="relative flex flex-col gap-2"
-              style={{ width: `${columnSplit}%` }}
-            >
-              {has13 ? (
-                <div className="h-full">
+          ) : has34 ? (
+            <div className="flex flex-col w-full gap-2">
+              <div className="h-1/2 flex gap-2">
+                <div style={{ width: `${activeTab.columnSplit}%` }}>
                   {renderTab(group1, groupIndex1)}
                 </div>
-              ) : (
-                <>
-                  <div style={{ height: `${leftColumnRowSplit}%` }}>
-                    {renderTab(group1, groupIndex1)}
-                  </div>
-                  <div
-                    className="absolute left-0 right-0 h-2 bg-zinc-700 hover:bg-green-500 cursor-row-resize z-10 -translate-y-1/2"
-                    style={{ top: `${leftColumnRowSplit}%` }}
-                    onMouseDown={() => setIsDraggingLeftHorizontal(true)}
-                  />
-                  <div style={{ height: `${100 - leftColumnRowSplit}%` }}>
-                    {renderTab(group3, groupIndex3)}
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div
-              className="absolute top-0 bottom-0 w-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
-              style={{ left: `${columnSplit}%` }}
-              onMouseDown={() => setIsDraggingVertical(true)}
-            />
-
-            <div
-              ref={rightColumnRef}
-              className="relative flex flex-col gap-2"
-              style={{ width: `${100 - columnSplit}%` }}
-            >
-              {has24 ? (
-                <div className="h-full">
+                <div
+                  className="absolute top-0 h-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
+                  style={{ left: `${activeTab.columnSplit}%`, height: '50%' }}
+                  onMouseDown={() => setIsDraggingVertical(true)}
+                />
+                <div style={{ width: `${100 - activeTab.columnSplit}%` }}>
                   {renderTab(group2, groupIndex2)}
                 </div>
-              ) : (
-                <>
-                  <div style={{ height: `${rightColumnRowSplit}%` }}>
+              </div>
+              <div className="h-1/2">
+                {renderTab(group3, groupIndex3)}
+              </div>
+            </div>
+          ) : (
+            <>
+              <div
+                ref={leftColumnRef}
+                className="relative flex flex-col gap-2"
+                style={{ width: `${activeTab.columnSplit}%` }}
+              >
+                {has13 ? (
+                  <div className="h-full">
+                    {renderTab(group1, groupIndex1)}
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ height: `${activeTab.leftColumnRowSplit}%` }}>
+                      {renderTab(group1, groupIndex1)}
+                    </div>
+                    <div
+                      className="absolute left-0 right-0 h-2 bg-zinc-700 hover:bg-green-500 cursor-row-resize z-10 -translate-y-1/2"
+                      style={{ top: `${activeTab.leftColumnRowSplit}%` }}
+                      onMouseDown={() => setIsDraggingLeftHorizontal(true)}
+                    />
+                    <div style={{ height: `${100 - activeTab.leftColumnRowSplit}%` }}>
+                      {renderTab(group3, groupIndex3)}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div
+                className="absolute top-0 bottom-0 w-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
+                style={{ left: `${activeTab.columnSplit}%` }}
+                onMouseDown={() => setIsDraggingVertical(true)}
+              />
+
+              <div
+                ref={rightColumnRef}
+                className="relative flex flex-col gap-2"
+                style={{ width: `${100 - activeTab.columnSplit}%` }}
+              >
+                {has24 ? (
+                  <div className="h-full">
                     {renderTab(group2, groupIndex2)}
                   </div>
-                  <div
-                    className="absolute left-0 right-0 h-2 bg-zinc-700 hover:bg-purple-500 cursor-row-resize z-10 -translate-y-1/2"
-                    style={{ top: `${rightColumnRowSplit}%` }}
-                    onMouseDown={() => setIsDraggingRightHorizontal(true)}
-                  />
-                  <div style={{ height: `${100 - rightColumnRowSplit}%` }}>
-                    {renderTab(group4, groupIndex4)}
-                  </div>
-                </>
-              )}
-            </div>
-          </>
-        )}
+                ) : (
+                  <>
+                    <div style={{ height: `${activeTab.rightColumnRowSplit}%` }}>
+                      {renderTab(group2, groupIndex2)}
+                    </div>
+                    <div
+                      className="absolute left-0 right-0 h-2 bg-zinc-700 hover:bg-purple-500 cursor-row-resize z-10 -translate-y-1/2"
+                      style={{ top: `${activeTab.rightColumnRowSplit}%` }}
+                      onMouseDown={() => setIsDraggingRightHorizontal(true)}
+                    />
+                    <div style={{ height: `${100 - activeTab.rightColumnRowSplit}%` }}>
+                      {renderTab(group4, groupIndex4)}
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Tabs */}
+      <div className="flex items-center gap-1 bg-zinc-800 px-2 py-1 border-t border-zinc-700">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTabId(tab.id)}
+            className={`group flex items-center gap-2 px-4 py-2 rounded-t-lg transition-all ${
+              activeTab.id === tab.id
+                ? "bg-zinc-900 text-white"
+                : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
+            }`}
+          >
+            <span className="text-sm font-medium">{tab.name}</span>
+            {tabs.length > 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeTab(tab.id);
+                }}
+                className="opacity-0 group-hover:opacity-100 hover:bg-zinc-600 rounded p-0.5 transition-opacity"
+                title="Cerrar tab"
+              >
+                <span className="text-xs">✕</span>
+              </button>
+            )}
+          </button>
+        ))}
+
+        <button
+          onClick={createNewTab}
+          className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-zinc-300 transition-all ml-1"
+          title="Nuevo tab"
+        >
+          <span className="text-lg">+</span>
+        </button>
       </div>
     </div>
   );
