@@ -14,6 +14,7 @@ type TabData = {
   rightColumnRowSplit: number;
   topRowColumnSplit: number;
   bottomRowColumnSplit: number;
+  rowSplit: number; // Split vertical entre filas cuando hay merge horizontal
 };
 
 const createNewTabData = (id: string, name: string): TabData => ({
@@ -25,6 +26,7 @@ const createNewTabData = (id: string, name: string): TabData => ({
   rightColumnRowSplit: 50,
   topRowColumnSplit: 50,
   bottomRowColumnSplit: 50,
+  rowSplit: 50,
 });
 
 export default function Home() {
@@ -48,6 +50,7 @@ export default function Home() {
   const [isDraggingRightHorizontal, setIsDraggingRightHorizontal] = useState(false);
   const [isDraggingTopRowVertical, setIsDraggingTopRowVertical] = useState(false);
   const [isDraggingBottomRowVertical, setIsDraggingBottomRowVertical] = useState(false);
+  const [isDraggingRowSplit, setIsDraggingRowSplit] = useState(false);
 
   const updateActiveTab = (updates: Partial<Omit<TabData, 'id' | 'name'>>) => {
     setTabs((prevTabs) =>
@@ -245,13 +248,27 @@ export default function Home() {
     );
   }, [activeTabId]);
 
+  const handleRowSplitDrag = useCallback((e: MouseEvent) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const percentage = (y / rect.height) * 100;
+    const clampedPercentage = Math.max(20, Math.min(80, percentage));
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === activeTabId ? { ...tab, rowSplit: clampedPercentage } : tab
+      )
+    );
+  }, [activeTabId]);
+
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isDraggingVertical) handleVerticalDrag(e);
     if (isDraggingLeftHorizontal) handleLeftHorizontalDrag(e);
     if (isDraggingRightHorizontal) handleRightHorizontalDrag(e);
     if (isDraggingTopRowVertical) handleTopRowVerticalDrag(e);
     if (isDraggingBottomRowVertical) handleBottomRowVerticalDrag(e);
-  }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, isDraggingTopRowVertical, isDraggingBottomRowVertical, handleVerticalDrag, handleLeftHorizontalDrag, handleRightHorizontalDrag, handleTopRowVerticalDrag, handleBottomRowVerticalDrag]);
+    if (isDraggingRowSplit) handleRowSplitDrag(e);
+  }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, isDraggingTopRowVertical, isDraggingBottomRowVertical, isDraggingRowSplit, handleVerticalDrag, handleLeftHorizontalDrag, handleRightHorizontalDrag, handleTopRowVerticalDrag, handleBottomRowVerticalDrag, handleRowSplitDrag]);
 
   const handleMouseUp = useCallback(() => {
     setIsDraggingVertical(false);
@@ -259,10 +276,11 @@ export default function Home() {
     setIsDraggingRightHorizontal(false);
     setIsDraggingTopRowVertical(false);
     setIsDraggingBottomRowVertical(false);
+    setIsDraggingRowSplit(false);
   }, []);
 
   useEffect(() => {
-    if (isDraggingVertical || isDraggingLeftHorizontal || isDraggingRightHorizontal || isDraggingTopRowVertical || isDraggingBottomRowVertical) {
+    if (isDraggingVertical || isDraggingLeftHorizontal || isDraggingRightHorizontal || isDraggingTopRowVertical || isDraggingBottomRowVertical || isDraggingRowSplit) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
       return () => {
@@ -270,7 +288,7 @@ export default function Home() {
         window.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, isDraggingTopRowVertical, isDraggingBottomRowVertical, handleMouseMove, handleMouseUp]);
+  }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, isDraggingTopRowVertical, isDraggingBottomRowVertical, isDraggingRowSplit, handleMouseMove, handleMouseUp]);
 
   const getExpansionOptions = (tabId: TabId) => {
     const options: { direction: string; targetTab: TabId; icon: string; label: string }[] = [];
@@ -360,11 +378,17 @@ export default function Home() {
           {has12 ? (
             <div className="flex flex-col w-full gap-2">
               {/* Fila superior: 1-2 merged */}
-              <div className="h-1/2">
+              <div style={{ height: `${activeTab.rowSplit}%` }}>
                 {renderTab(group1, groupIndex1)}
               </div>
+              {/* Handle horizontal para ajustar altura entre filas */}
+              <div
+                className="absolute left-0 right-0 h-2 bg-zinc-700 hover:bg-orange-500 cursor-row-resize z-20 -translate-y-1/2"
+                style={{ top: `${activeTab.rowSplit}%` }}
+                onMouseDown={() => setIsDraggingRowSplit(true)}
+              />
               {/* Fila inferior: 3 y 4 separadas */}
-              <div ref={bottomRowRef} className="relative h-1/2 flex gap-2">
+              <div ref={bottomRowRef} className="relative flex gap-2" style={{ height: `${100 - activeTab.rowSplit}%` }}>
                 <div style={{ width: `${activeTab.bottomRowColumnSplit}%` }}>
                   {renderTab(group3, groupIndex3)}
                 </div>
@@ -381,7 +405,7 @@ export default function Home() {
           ) : has34 ? (
             <div className="flex flex-col w-full gap-2">
               {/* Fila superior: 1 y 2 separadas */}
-              <div ref={topRowRef} className="relative h-1/2 flex gap-2">
+              <div ref={topRowRef} className="relative flex gap-2" style={{ height: `${activeTab.rowSplit}%` }}>
                 <div style={{ width: `${activeTab.topRowColumnSplit}%` }}>
                   {renderTab(group1, groupIndex1)}
                 </div>
@@ -394,8 +418,14 @@ export default function Home() {
                   {renderTab(group2, groupIndex2)}
                 </div>
               </div>
+              {/* Handle horizontal para ajustar altura entre filas */}
+              <div
+                className="absolute left-0 right-0 h-2 bg-zinc-700 hover:bg-orange-500 cursor-row-resize z-20 -translate-y-1/2"
+                style={{ top: `${activeTab.rowSplit}%` }}
+                onMouseDown={() => setIsDraggingRowSplit(true)}
+              />
               {/* Fila inferior: 3-4 merged */}
-              <div className="h-1/2">
+              <div style={{ height: `${100 - activeTab.rowSplit}%` }}>
                 {renderTab(group3, groupIndex3)}
               </div>
             </div>
