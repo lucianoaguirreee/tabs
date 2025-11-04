@@ -1,36 +1,157 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sistema de Tabs con Paneles Reorganizables
 
-## Getting Started
+Un sistema de pestañas (tabs) ubicado en la parte inferior con vistas reorganizables al estilo VSCode, construido con Next.js 16, React 19 y TypeScript.
 
-First, run the development server:
+## Características
+
+- **Tabs en la Parte Inferior**: Sistema de navegación con pestañas ubicadas en la parte inferior de la pantalla
+- **4 Vistas Diferentes**:
+  - Inicio (Dashboard)
+  - Análisis
+  - Reportes
+  - Ajustes
+- **Paneles Reorganizables**: Cada vista contiene 3-4 paneles que se pueden arrastrar y reorganizar al estilo VSCode
+- **Diseño Responsivo**: Completamente adaptable con soporte para modo oscuro
+- **Interfaz Moderna**: Construida con Tailwind CSS y componentes personalizados
+
+## Tecnologías Utilizadas
+
+- **Next.js 16** - Framework React con Turbopack
+- **React 19** - Biblioteca de UI
+- **TypeScript** - Tipado estático
+- **Tailwind CSS** - Estilos utilitarios
+- **react-grid-layout** - Sistema de grid reorganizable
+- **lucide-react** - Iconos modernos
+
+## Instalación
+
+```bash
+npm install
+```
+
+## Uso
+
+### Desarrollo
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Producción
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## Estructura del Proyecto
 
-To learn more about Next.js, take a look at the following resources:
+```
+tabs/
+├── app/
+│   ├── layout.tsx          # Layout principal
+│   ├── page.tsx            # Página principal con configuración de tabs
+│   └── globals.css         # Estilos globales
+├── components/
+│   ├── BottomTabsSystem.tsx    # Sistema de tabs principal
+│   ├── DraggableGrid.tsx       # Grid reorganizable
+│   └── panels/                 # Paneles individuales
+│       ├── ChartPanel.tsx
+│       ├── StatsPanel.tsx
+│       ├── ListPanel.tsx
+│       ├── InfoPanel.tsx
+│       ├── CalendarPanel.tsx
+│       ├── NotificationsPanel.tsx
+│       ├── ProgressPanel.tsx
+│       └── SettingsPanel.tsx
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Cómo Usar
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 1. Navegación entre Tabs
 
-## Deploy on Vercel
+Haz clic en cualquiera de las pestañas en la parte inferior de la pantalla:
+- **Inicio**: Vista de dashboard con estadísticas
+- **Análisis**: Vista de análisis con gráficos y calendario
+- **Reportes**: Vista de reportes con información detallada
+- **Ajustes**: Vista de configuración del sistema
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 2. Reorganizar Paneles
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Cada panel tiene una **barra de título** con 3 puntos que actúa como área de arrastre
+- **Arrastra** cualquier panel desde su barra de título para moverlo
+- **Redimensiona** los paneles arrastrando desde las esquinas
+- Los paneles se ajustan automáticamente para evitar superposiciones
+
+### 3. Personalizar Vistas
+
+Para agregar o modificar paneles, edita el archivo `app/page.tsx`:
+
+```typescript
+// Ejemplo: Agregar un nuevo panel
+const customPanels = [
+  {
+    id: 'mi-panel',
+    title: 'Mi Panel Personalizado',
+    content: <MiComponente />,
+    defaultPosition: { x: 0, y: 0, w: 6, h: 3 }
+  },
+  // ... más paneles
+];
+```
+
+### 4. Crear Nuevos Paneles
+
+1. Crea un nuevo archivo en `components/panels/`:
+
+```typescript
+'use client';
+
+import React from 'react';
+
+export default function MiPanel() {
+  return (
+    <div className="h-full">
+      {/* Tu contenido aquí */}
+    </div>
+  );
+}
+```
+
+2. Impórtalo en `app/page.tsx`
+3. Agrégalo a la configuración de paneles de cualquier vista
+
+## Configuración del Grid
+
+El sistema de grid utiliza estas propiedades:
+
+- **cols**: Número de columnas (default: 12)
+- **rowHeight**: Altura de cada fila en píxeles (default: 100)
+- **x, y**: Posición del panel en la cuadrícula
+- **w, h**: Ancho y alto del panel en unidades de grid
+
+## Estilos y Temas
+
+El proyecto utiliza Tailwind CSS con soporte para modo oscuro automático basado en las preferencias del sistema.
+
+Para personalizar los colores, edita `app/globals.css`:
+
+```css
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+```
+
+## Licencia
+
+MIT
