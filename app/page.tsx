@@ -13,10 +13,9 @@ export default function Home() {
     [4],
   ]);
 
-  // Estado para resize
-  const [columnSplit, setColumnSplit] = useState(50); // % para dividir columnas
-  const [leftColumnRowSplit, setLeftColumnRowSplit] = useState(50); // % para dividir 1 y 3
-  const [rightColumnRowSplit, setRightColumnRowSplit] = useState(50); // % para dividir 2 y 4
+  const [columnSplit, setColumnSplit] = useState(50);
+  const [leftColumnRowSplit, setLeftColumnRowSplit] = useState(50);
+  const [rightColumnRowSplit, setRightColumnRowSplit] = useState(50);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const leftColumnRef = useRef<HTMLDivElement>(null);
@@ -165,26 +164,71 @@ export default function Home() {
     }
   }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, handleMouseMove, handleMouseUp]);
 
+  // Obtener direcciones de expansión disponibles para cada pestaña
+  const getExpansionOptions = (tabId: TabId) => {
+    const options: { direction: string; targetTab: TabId; icon: string; label: string }[] = [];
+
+    if (tabId === 1) {
+      if (canMerge(1, 2)) options.push({ direction: "right", targetTab: 2, icon: "→", label: "Derecha" });
+      if (canMerge(1, 3)) options.push({ direction: "down", targetTab: 3, icon: "↓", label: "Abajo" });
+    } else if (tabId === 2) {
+      if (canMerge(2, 1)) options.push({ direction: "left", targetTab: 1, icon: "←", label: "Izquierda" });
+      if (canMerge(2, 4)) options.push({ direction: "down", targetTab: 4, icon: "↓", label: "Abajo" });
+    } else if (tabId === 3) {
+      if (canMerge(3, 1)) options.push({ direction: "up", targetTab: 1, icon: "↑", label: "Arriba" });
+      if (canMerge(3, 4)) options.push({ direction: "right", targetTab: 4, icon: "→", label: "Derecha" });
+    } else if (tabId === 4) {
+      if (canMerge(4, 2)) options.push({ direction: "up", targetTab: 2, icon: "↑", label: "Arriba" });
+      if (canMerge(4, 3)) options.push({ direction: "left", targetTab: 3, icon: "←", label: "Izquierda" });
+    }
+
+    return options;
+  };
+
   const renderTab = (group: MergedGroup | null, groupIndex: number) => {
     if (!group) return null;
 
+    const isGrouped = group.length > 1;
+
     return (
       <div
-        className={`flex flex-col items-center justify-center rounded-lg h-full w-full ${
+        className={`group relative flex flex-col items-center justify-center rounded-lg h-full w-full ${
           group.length === 1 ? getTabColor(group[0]) : "bg-gradient-to-br from-blue-500 via-purple-500 to-orange-500"
-        }`}
+        } transition-all`}
       >
         <div className="text-4xl font-bold text-white">
-          {group.length === 1 ? `Pestaña ${group[0]}` : `Pestañas ${group.join(", ")}`}
+          {group.length === 1 ? `${group[0]}` : group.join(" + ")}
         </div>
-        {group.length > 1 && (
-          <button
-            onClick={() => splitGroup(groupIndex)}
-            className="mt-4 rounded bg-white px-4 py-2 text-black hover:bg-gray-200"
-          >
-            Separar
-          </button>
-        )}
+
+        {/* Botones de expansión/separación */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          {isGrouped ? (
+            /* Botón de separar */
+            <button
+              onClick={() => splitGroup(groupIndex)}
+              className="flex items-center gap-2 rounded-lg bg-white/90 hover:bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-lg backdrop-blur transition-all hover:scale-105"
+              title="Separar"
+            >
+              <span className="text-lg">⊟</span>
+              <span>Separar</span>
+            </button>
+          ) : (
+            /* Botones de expandir */
+            <>
+              {getExpansionOptions(group[0]).map((option) => (
+                <button
+                  key={option.direction}
+                  onClick={() => mergeTabs(group[0], option.targetTab)}
+                  className="flex items-center gap-2 rounded-lg bg-white/90 hover:bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-lg backdrop-blur transition-all hover:scale-105"
+                  title={`Expandir hacia ${option.label}`}
+                >
+                  <span className="text-lg">{option.icon}</span>
+                  <span>{option.label}</span>
+                </button>
+              ))}
+            </>
+          )}
+        </div>
       </div>
     );
   };
@@ -207,61 +251,14 @@ export default function Home() {
 
   return (
     <div className="flex h-screen w-full flex-col bg-zinc-900 p-4">
-      <h1 className="mb-4 text-2xl font-bold text-white">
-        Sistema de Pestañas 2x2 con Resize Independiente
-      </h1>
-
-      <div className="mb-4 flex flex-wrap gap-2">
-        <button
-          onClick={() => mergeTabs(1, 2)}
-          disabled={!canMerge(1, 2)}
-          className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Juntar 1-2
-        </button>
-        <button
-          onClick={() => mergeTabs(1, 3)}
-          disabled={!canMerge(1, 3)}
-          className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Juntar 1-3
-        </button>
-        <button
-          onClick={() => mergeTabs(2, 4)}
-          disabled={!canMerge(2, 4)}
-          className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Juntar 2-4
-        </button>
-        <button
-          onClick={() => mergeTabs(3, 4)}
-          disabled={!canMerge(3, 4)}
-          className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Juntar 3-4
-        </button>
-        <button
-          onClick={() => {
-            setColumnSplit(50);
-            setLeftColumnRowSplit(50);
-            setRightColumnRowSplit(50);
-          }}
-          className="rounded bg-gray-600 px-4 py-2 text-white hover:bg-gray-500"
-        >
-          Reset Tamaños
-        </button>
-      </div>
-
       {/* Grid principal */}
       <div ref={containerRef} className="relative flex-1 flex gap-2">
         {/* CASO 1: Merge horizontal 1-2 arriba */}
         {has12 ? (
           <div className="flex flex-col w-full gap-2">
-            {/* Fila superior: 1-2 merged (100% ancho) */}
             <div className="h-1/2">
               {renderTab(group1, groupIndex1)}
             </div>
-            {/* Fila inferior: 3 y 4 */}
             <div className="h-1/2 flex gap-2">
               <div style={{ width: `${columnSplit}%` }}>
                 {renderTab(group3, groupIndex3)}
@@ -279,7 +276,6 @@ export default function Home() {
         ) : has34 ? (
           /* CASO 2: Merge horizontal 3-4 abajo */
           <div className="flex flex-col w-full gap-2">
-            {/* Fila superior: 1 y 2 */}
             <div className="h-1/2 flex gap-2">
               <div style={{ width: `${columnSplit}%` }}>
                 {renderTab(group1, groupIndex1)}
@@ -293,22 +289,19 @@ export default function Home() {
                 {renderTab(group2, groupIndex2)}
               </div>
             </div>
-            {/* Fila inferior: 3-4 merged (100% ancho) */}
             <div className="h-1/2">
               {renderTab(group3, groupIndex3)}
             </div>
           </div>
         ) : (
-          /* CASO 3: Layout por columnas (sin merge horizontal) */
+          /* CASO 3: Layout por columnas */
           <>
-            {/* Columna izquierda */}
             <div
               ref={leftColumnRef}
               className="relative flex flex-col gap-2"
               style={{ width: `${columnSplit}%` }}
             >
               {has13 ? (
-                /* 1-3 merged: 100% altura */
                 <div className="h-full">
                   {renderTab(group1, groupIndex1)}
                 </div>
@@ -329,21 +322,18 @@ export default function Home() {
               )}
             </div>
 
-            {/* Handle vertical entre columnas */}
             <div
               className="absolute top-0 bottom-0 w-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
               style={{ left: `${columnSplit}%` }}
               onMouseDown={() => setIsDraggingVertical(true)}
             />
 
-            {/* Columna derecha */}
             <div
               ref={rightColumnRef}
               className="relative flex flex-col gap-2"
               style={{ width: `${100 - columnSplit}%` }}
             >
               {has24 ? (
-                /* 2-4 merged: 100% altura */
                 <div className="h-full">
                   {renderTab(group2, groupIndex2)}
                 </div>
@@ -365,25 +355,6 @@ export default function Home() {
             </div>
           </>
         )}
-      </div>
-
-      {/* Información de estado */}
-      <div className="mt-4 rounded bg-zinc-800 p-4 text-white">
-        <h2 className="mb-2 font-bold">Estado actual:</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm">Grupos:</p>
-            <pre className="text-xs">{JSON.stringify(mergedGroups, null, 2)}</pre>
-          </div>
-          <div>
-            <p className="text-sm">Tamaños:</p>
-            <pre className="text-xs">
-              {`Columnas: ${columnSplit.toFixed(1)}% | ${(100 - columnSplit).toFixed(1)}%
-Izq (1-3): ${leftColumnRowSplit.toFixed(1)}% | ${(100 - leftColumnRowSplit).toFixed(1)}%
-Der (2-4): ${rightColumnRowSplit.toFixed(1)}% | ${(100 - rightColumnRowSplit).toFixed(1)}%`}
-            </pre>
-          </div>
-        </div>
       </div>
     </div>
   );
