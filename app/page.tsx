@@ -22,9 +22,9 @@ export default function Home() {
   const leftColumnRef = useRef<HTMLDivElement>(null);
   const rightColumnRef = useRef<HTMLDivElement>(null);
 
-  const [isDraggingVertical, setIsDraggingVertical] = useState(false); // handle vertical (columnas)
-  const [isDraggingLeftHorizontal, setIsDraggingLeftHorizontal] = useState(false); // handle horizontal izquierdo
-  const [isDraggingRightHorizontal, setIsDraggingRightHorizontal] = useState(false); // handle horizontal derecho
+  const [isDraggingVertical, setIsDraggingVertical] = useState(false);
+  const [isDraggingLeftHorizontal, setIsDraggingLeftHorizontal] = useState(false);
+  const [isDraggingRightHorizontal, setIsDraggingRightHorizontal] = useState(false);
 
   const findGroupIndex = (tabId: TabId): number => {
     return mergedGroups.findIndex((group) => group.includes(tabId));
@@ -34,68 +34,43 @@ export default function Home() {
     return mergedGroups.find((group) => group.includes(tabId));
   };
 
-  // Reglas de merge mejoradas con validación de conflictos espaciales
   const canMerge = (tab1: TabId, tab2: TabId): boolean => {
     const group1 = findGroupByTab(tab1);
     const group2 = findGroupByTab(tab2);
 
     if (!group1 || !group2) return false;
-
-    // No se pueden juntar si ya están en el mismo grupo
     if (group1 === group2) return false;
 
-    // Verificar conflictos espaciales
-
-    // Si intentamos juntar 1-2 (horizontal arriba)
     if ((tab1 === 1 && tab2 === 2) || (tab1 === 2 && tab2 === 1)) {
-      // No permitir si 1 está en un grupo vertical (1-3) o 2 está en un grupo vertical (2-4)
       const has1And3 = group1.includes(1) && group1.includes(3);
       const has2And4 = group2.includes(2) && group2.includes(4);
       const has1And3_inv = group2.includes(1) && group2.includes(3);
       const has2And4_inv = group1.includes(2) && group1.includes(4);
-
-      if (has1And3 || has2And4 || has1And3_inv || has2And4_inv) {
-        return false;
-      }
+      if (has1And3 || has2And4 || has1And3_inv || has2And4_inv) return false;
     }
 
-    // Si intentamos juntar 3-4 (horizontal abajo)
     if ((tab1 === 3 && tab2 === 4) || (tab1 === 4 && tab2 === 3)) {
-      // No permitir si 3 está en un grupo vertical (1-3) o 4 está en un grupo vertical (2-4)
       const has1And3 = group1.includes(1) && group1.includes(3);
       const has2And4 = group2.includes(2) && group2.includes(4);
       const has1And3_inv = group2.includes(1) && group2.includes(3);
       const has2And4_inv = group1.includes(2) && group1.includes(4);
-
-      if (has1And3 || has2And4 || has1And3_inv || has2And4_inv) {
-        return false;
-      }
+      if (has1And3 || has2And4 || has1And3_inv || has2And4_inv) return false;
     }
 
-    // Si intentamos juntar 1-3 (vertical izquierda)
     if ((tab1 === 1 && tab2 === 3) || (tab1 === 3 && tab2 === 1)) {
-      // No permitir si 1 está en un grupo horizontal (1-2) o 3 está en un grupo horizontal (3-4)
       const has1And2 = group1.includes(1) && group1.includes(2);
       const has3And4 = group2.includes(3) && group2.includes(4);
       const has1And2_inv = group2.includes(1) && group2.includes(2);
       const has3And4_inv = group1.includes(3) && group1.includes(4);
-
-      if (has1And2 || has3And4 || has1And2_inv || has3And4_inv) {
-        return false;
-      }
+      if (has1And2 || has3And4 || has1And2_inv || has3And4_inv) return false;
     }
 
-    // Si intentamos juntar 2-4 (vertical derecha)
     if ((tab1 === 2 && tab2 === 4) || (tab1 === 4 && tab2 === 2)) {
-      // No permitir si 2 está en un grupo horizontal (1-2) o 4 está en un grupo horizontal (3-4)
       const has1And2 = group1.includes(1) && group1.includes(2);
       const has3And4 = group2.includes(3) && group2.includes(4);
       const has1And2_inv = group2.includes(1) && group2.includes(2);
       const has3And4_inv = group1.includes(3) && group1.includes(4);
-
-      if (has1And2 || has3And4 || has1And2_inv || has3And4_inv) {
-        return false;
-      }
+      if (has1And2 || has3And4 || has1And2_inv || has3And4_inv) return false;
     }
 
     return true;
@@ -140,56 +115,37 @@ export default function Home() {
     return colors[tabId];
   };
 
-  // Manejo de resize vertical (entre columnas)
   const handleVerticalDrag = useCallback((e: MouseEvent) => {
     if (!containerRef.current) return;
-
     const rect = containerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const percentage = (x / rect.width) * 100;
-
-    // Limitar entre 20% y 80%
     const clampedPercentage = Math.max(20, Math.min(80, percentage));
     setColumnSplit(clampedPercentage);
   }, []);
 
-  // Manejo de resize horizontal columna izquierda (entre 1 y 3)
   const handleLeftHorizontalDrag = useCallback((e: MouseEvent) => {
     if (!leftColumnRef.current) return;
-
     const rect = leftColumnRef.current.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const percentage = (y / rect.height) * 100;
-
-    // Limitar entre 20% y 80%
     const clampedPercentage = Math.max(20, Math.min(80, percentage));
     setLeftColumnRowSplit(clampedPercentage);
   }, []);
 
-  // Manejo de resize horizontal columna derecha (entre 2 y 4)
   const handleRightHorizontalDrag = useCallback((e: MouseEvent) => {
     if (!rightColumnRef.current) return;
-
     const rect = rightColumnRef.current.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const percentage = (y / rect.height) * 100;
-
-    // Limitar entre 20% y 80%
     const clampedPercentage = Math.max(20, Math.min(80, percentage));
     setRightColumnRowSplit(clampedPercentage);
   }, []);
 
-  // Event listeners para drag
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (isDraggingVertical) {
-      handleVerticalDrag(e);
-    }
-    if (isDraggingLeftHorizontal) {
-      handleLeftHorizontalDrag(e);
-    }
-    if (isDraggingRightHorizontal) {
-      handleRightHorizontalDrag(e);
-    }
+    if (isDraggingVertical) handleVerticalDrag(e);
+    if (isDraggingLeftHorizontal) handleLeftHorizontalDrag(e);
+    if (isDraggingRightHorizontal) handleRightHorizontalDrag(e);
   }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, handleVerticalDrag, handleLeftHorizontalDrag, handleRightHorizontalDrag]);
 
   const handleMouseUp = useCallback(() => {
@@ -198,7 +154,6 @@ export default function Home() {
     setIsDraggingRightHorizontal(false);
   }, []);
 
-  // Agregar/remover event listeners
   useEffect(() => {
     if (isDraggingVertical || isDraggingLeftHorizontal || isDraggingRightHorizontal) {
       window.addEventListener('mousemove', handleMouseMove);
@@ -210,55 +165,17 @@ export default function Home() {
     }
   }, [isDraggingVertical, isDraggingLeftHorizontal, isDraggingRightHorizontal, handleMouseMove, handleMouseUp]);
 
-  // Funciones auxiliares para renderizado
-  const getTabsInPosition = (position: TabId): MergedGroup | null => {
-    const group = mergedGroups.find(g => g.includes(position));
-    if (!group) return null;
-
-    // Si el grupo solo contiene esta pestaña, retornarlo
-    if (group.length === 1 && group[0] === position) return group;
-
-    // Si el grupo contiene múltiples pestañas
-    if (group.length > 1) {
-      // Para pestañas 1 y 2, retornar el grupo si contiene ambas (1-2)
-      if (position === 1 || position === 2) {
-        if (group.includes(1) && group.includes(2)) return group;
-      }
-      // Para pestañas 3 y 4, retornar el grupo si contiene ambas (3-4)
-      if (position === 3 || position === 4) {
-        if (group.includes(3) && group.includes(4)) return group;
-      }
-      // Para pestañas 1 y 3, retornar el grupo si contiene ambas (1-3)
-      if (position === 1 || position === 3) {
-        if (group.includes(1) && group.includes(3)) return group;
-      }
-      // Para pestañas 2 y 4, retornar el grupo si contiene ambas (2-4)
-      if (position === 2 || position === 4) {
-        if (group.includes(2) && group.includes(4)) return group;
-      }
-      // Si contiene 3 o 4 pestañas
-      if (group.length >= 3) return group;
-    }
-
-    // Si solo contiene esta pestaña individual
-    if (group.includes(position)) return group;
-
-    return null;
-  };
-
   const renderTab = (group: MergedGroup | null, groupIndex: number) => {
     if (!group) return null;
 
     return (
       <div
-        className={`flex flex-col items-center justify-center rounded-lg h-full ${
+        className={`flex flex-col items-center justify-center rounded-lg h-full w-full ${
           group.length === 1 ? getTabColor(group[0]) : "bg-gradient-to-br from-blue-500 via-purple-500 to-orange-500"
         }`}
       >
         <div className="text-4xl font-bold text-white">
-          {group.length === 1
-            ? `Pestaña ${group[0]}`
-            : `Pestañas ${group.join(", ")}`}
+          {group.length === 1 ? `Pestaña ${group[0]}` : `Pestañas ${group.join(", ")}`}
         </div>
         {group.length > 1 && (
           <button
@@ -272,20 +189,21 @@ export default function Home() {
     );
   };
 
-  // Obtener grupos para cada posición
-  const tab1Group = getTabsInPosition(1);
-  const tab2Group = getTabsInPosition(2);
-  const tab3Group = getTabsInPosition(3);
-  const tab4Group = getTabsInPosition(4);
+  // Detectar grupos
+  const group1 = findGroupByTab(1);
+  const group2 = findGroupByTab(2);
+  const group3 = findGroupByTab(3);
+  const group4 = findGroupByTab(4);
 
-  const tab1GroupIndex = tab1Group ? findGroupIndex(tab1Group[0]) : -1;
-  const tab2GroupIndex = tab2Group ? findGroupIndex(tab2Group[0]) : -1;
-  const tab3GroupIndex = tab3Group ? findGroupIndex(tab3Group[0]) : -1;
-  const tab4GroupIndex = tab4Group ? findGroupIndex(tab4Group[0]) : -1;
+  const has12 = group1 && group1.includes(1) && group1.includes(2);
+  const has13 = group1 && group1.includes(1) && group1.includes(3);
+  const has24 = group2 && group2.includes(2) && group2.includes(4);
+  const has34 = group3 && group3.includes(3) && group3.includes(4);
 
-  // Verificar si las columnas están merged verticalmente
-  const isLeftColumnMerged = tab1Group && tab1Group.includes(1) && tab1Group.includes(3);
-  const isRightColumnMerged = tab2Group && tab2Group.includes(2) && tab2Group.includes(4);
+  const groupIndex1 = group1 ? findGroupIndex(group1[0]) : -1;
+  const groupIndex2 = group2 ? findGroupIndex(group2[0]) : -1;
+  const groupIndex3 = group3 ? findGroupIndex(group3[0]) : -1;
+  const groupIndex4 = group4 ? findGroupIndex(group4[0]) : -1;
 
   return (
     <div className="flex h-screen w-full flex-col bg-zinc-900 p-4">
@@ -293,7 +211,6 @@ export default function Home() {
         Sistema de Pestañas 2x2 con Resize Independiente
       </h1>
 
-      {/* Controles de merge */}
       <div className="mb-4 flex flex-wrap gap-2">
         <button
           onClick={() => mergeTabs(1, 2)}
@@ -335,73 +252,119 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Grid de pestañas con resize independiente */}
-      <div
-        ref={containerRef}
-        className="relative flex flex-1 gap-2"
-      >
-        {/* Columna izquierda (1 y 3) */}
-        <div
-          ref={leftColumnRef}
-          className="relative flex flex-col gap-2"
-          style={{ width: `${columnSplit}%` }}
-        >
-          {/* Pestaña 1 */}
-          <div style={{ height: `${leftColumnRowSplit}%` }}>
-            {renderTab(tab1Group, tab1GroupIndex)}
-          </div>
-
-          {/* Handle horizontal para columna izquierda */}
-          {!isLeftColumnMerged && (
-            <div
-              className="absolute left-0 right-0 h-2 bg-zinc-700 hover:bg-green-500 cursor-row-resize z-10 -translate-y-1/2"
-              style={{ top: `${leftColumnRowSplit}%` }}
-              onMouseDown={() => setIsDraggingLeftHorizontal(true)}
-            />
-          )}
-
-          {/* Pestaña 3 */}
-          {!isLeftColumnMerged && (
-            <div style={{ height: `${100 - leftColumnRowSplit}%` }}>
-              {renderTab(tab3Group, tab3GroupIndex)}
+      {/* Grid principal */}
+      <div ref={containerRef} className="relative flex-1 flex gap-2">
+        {/* CASO 1: Merge horizontal 1-2 arriba */}
+        {has12 ? (
+          <div className="flex flex-col w-full gap-2">
+            {/* Fila superior: 1-2 merged (100% ancho) */}
+            <div className="h-1/2">
+              {renderTab(group1, groupIndex1)}
             </div>
-          )}
-        </div>
-
-        {/* Resize handle vertical (entre columnas) */}
-        <div
-          className="absolute top-0 bottom-0 w-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
-          style={{ left: `${columnSplit}%` }}
-          onMouseDown={() => setIsDraggingVertical(true)}
-        />
-
-        {/* Columna derecha (2 y 4) */}
-        <div
-          ref={rightColumnRef}
-          className="relative flex flex-col gap-2"
-          style={{ width: `${100 - columnSplit}%` }}
-        >
-          {/* Pestaña 2 */}
-          <div style={{ height: `${rightColumnRowSplit}%` }}>
-            {renderTab(tab2Group, tab2GroupIndex)}
-          </div>
-
-          {/* Handle horizontal para columna derecha */}
-          {!isRightColumnMerged && (
-            <div
-              className="absolute left-0 right-0 h-2 bg-zinc-700 hover:bg-purple-500 cursor-row-resize z-10 -translate-y-1/2"
-              style={{ top: `${rightColumnRowSplit}%` }}
-              onMouseDown={() => setIsDraggingRightHorizontal(true)}
-            />
-          )}
-
-          {/* Pestaña 4 */}
-          {!isRightColumnMerged && (
-            <div style={{ height: `${100 - rightColumnRowSplit}%` }}>
-              {renderTab(tab4Group, tab4GroupIndex)}
+            {/* Fila inferior: 3 y 4 */}
+            <div className="h-1/2 flex gap-2">
+              <div style={{ width: `${columnSplit}%` }}>
+                {renderTab(group3, groupIndex3)}
+              </div>
+              <div
+                className="absolute top-1/2 h-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
+                style={{ left: `${columnSplit}%`, bottom: 0 }}
+                onMouseDown={() => setIsDraggingVertical(true)}
+              />
+              <div style={{ width: `${100 - columnSplit}%` }}>
+                {renderTab(group4, groupIndex4)}
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        ) : has34 ? (
+          /* CASO 2: Merge horizontal 3-4 abajo */
+          <div className="flex flex-col w-full gap-2">
+            {/* Fila superior: 1 y 2 */}
+            <div className="h-1/2 flex gap-2">
+              <div style={{ width: `${columnSplit}%` }}>
+                {renderTab(group1, groupIndex1)}
+              </div>
+              <div
+                className="absolute top-0 h-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
+                style={{ left: `${columnSplit}%`, height: '50%' }}
+                onMouseDown={() => setIsDraggingVertical(true)}
+              />
+              <div style={{ width: `${100 - columnSplit}%` }}>
+                {renderTab(group2, groupIndex2)}
+              </div>
+            </div>
+            {/* Fila inferior: 3-4 merged (100% ancho) */}
+            <div className="h-1/2">
+              {renderTab(group3, groupIndex3)}
+            </div>
+          </div>
+        ) : (
+          /* CASO 3: Layout por columnas (sin merge horizontal) */
+          <>
+            {/* Columna izquierda */}
+            <div
+              ref={leftColumnRef}
+              className="relative flex flex-col gap-2"
+              style={{ width: `${columnSplit}%` }}
+            >
+              {has13 ? (
+                /* 1-3 merged: 100% altura */
+                <div className="h-full">
+                  {renderTab(group1, groupIndex1)}
+                </div>
+              ) : (
+                <>
+                  <div style={{ height: `${leftColumnRowSplit}%` }}>
+                    {renderTab(group1, groupIndex1)}
+                  </div>
+                  <div
+                    className="absolute left-0 right-0 h-2 bg-zinc-700 hover:bg-green-500 cursor-row-resize z-10 -translate-y-1/2"
+                    style={{ top: `${leftColumnRowSplit}%` }}
+                    onMouseDown={() => setIsDraggingLeftHorizontal(true)}
+                  />
+                  <div style={{ height: `${100 - leftColumnRowSplit}%` }}>
+                    {renderTab(group3, groupIndex3)}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Handle vertical entre columnas */}
+            <div
+              className="absolute top-0 bottom-0 w-2 bg-zinc-700 hover:bg-blue-500 cursor-col-resize z-20 -translate-x-1/2"
+              style={{ left: `${columnSplit}%` }}
+              onMouseDown={() => setIsDraggingVertical(true)}
+            />
+
+            {/* Columna derecha */}
+            <div
+              ref={rightColumnRef}
+              className="relative flex flex-col gap-2"
+              style={{ width: `${100 - columnSplit}%` }}
+            >
+              {has24 ? (
+                /* 2-4 merged: 100% altura */
+                <div className="h-full">
+                  {renderTab(group2, groupIndex2)}
+                </div>
+              ) : (
+                <>
+                  <div style={{ height: `${rightColumnRowSplit}%` }}>
+                    {renderTab(group2, groupIndex2)}
+                  </div>
+                  <div
+                    className="absolute left-0 right-0 h-2 bg-zinc-700 hover:bg-purple-500 cursor-row-resize z-10 -translate-y-1/2"
+                    style={{ top: `${rightColumnRowSplit}%` }}
+                    onMouseDown={() => setIsDraggingRightHorizontal(true)}
+                  />
+                  <div style={{ height: `${100 - rightColumnRowSplit}%` }}>
+                    {renderTab(group4, groupIndex4)}
+                  </div>
+                </>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Información de estado */}
@@ -410,9 +373,7 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm">Grupos:</p>
-            <pre className="text-xs">
-              {JSON.stringify(mergedGroups, null, 2)}
-            </pre>
+            <pre className="text-xs">{JSON.stringify(mergedGroups, null, 2)}</pre>
           </div>
           <div>
             <p className="text-sm">Tamaños:</p>
