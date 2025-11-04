@@ -1,13 +1,12 @@
 'use client';
 
-import { DndContext, DragEndEvent, DragOverEvent, closestCenter } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
+import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { useTabStore } from '../store/useTabStore';
 import { DropZone } from './DropZone';
-import { ZoneId } from '../types/tabs';
+import { ZoneId, ZoneLayout, LayoutDirection } from '../types/tabs';
 
 export function TabGrid() {
-  const { zones, moveTab, removeTab } = useTabStore();
+  const { zones, layout, moveTab, removeTab, mergeZones } = useTabStore();
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -65,20 +64,52 @@ export function TabGrid() {
     }
   };
 
+  const handleMergeZone = (fromZoneId: ZoneId, toZoneId: ZoneId, direction: LayoutDirection) => {
+    mergeZones(fromZoneId, toZoneId, direction);
+  };
+
+  // Get adjacent zones for a given zone based on initial 2x2 layout
+  const getAdjacentZones = (zoneId: ZoneId) => {
+    const adjacency: Record<ZoneId, { top?: ZoneId; bottom?: ZoneId; left?: ZoneId; right?: ZoneId }> = {
+      1: { right: 2, bottom: 3 },
+      2: { left: 1, bottom: 4 },
+      3: { top: 1, right: 4 },
+      4: { top: 2, left: 3 },
+    };
+    return adjacency[zoneId] || {};
+  };
+
+  // Recursively render the layout tree
+  const renderLayout = (node: ZoneLayout): JSX.Element => {
+    if (node.type === 'zone' && node.zoneId) {
+      return (
+        <DropZone
+          key={node.id}
+          zoneId={node.zoneId}
+          tabs={zones[node.zoneId]}
+          onRemoveTab={removeTab}
+          onMergeZone={(targetZoneId, direction) => handleMergeZone(node.zoneId!, targetZoneId, direction)}
+          adjacentZones={getAdjacentZones(node.zoneId)}
+        />
+      );
+    }
+
+    if (node.type === 'split' && node.children) {
+      const flexDirection = node.direction === 'horizontal' ? 'flex-row' : 'flex-col';
+      return (
+        <div key={node.id} className={`flex ${flexDirection} gap-4 flex-1`}>
+          {node.children.map((child) => renderLayout(child))}
+        </div>
+      );
+    }
+
+    return <div key={node.id}>Invalid layout node</div>;
+  };
+
   return (
     <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-2 gap-4 p-6 h-screen bg-gray-100">
-        {/* Zone 1 (top-left) */}
-        <DropZone zoneId={1} tabs={zones[1]} onRemoveTab={removeTab} />
-
-        {/* Zone 2 (top-right) */}
-        <DropZone zoneId={2} tabs={zones[2]} onRemoveTab={removeTab} />
-
-        {/* Zone 3 (bottom-left) */}
-        <DropZone zoneId={3} tabs={zones[3]} onRemoveTab={removeTab} />
-
-        {/* Zone 4 (bottom-right) */}
-        <DropZone zoneId={4} tabs={zones[4]} onRemoveTab={removeTab} />
+      <div className="p-6 h-screen bg-gray-100 flex flex-col">
+        {renderLayout(layout)}
       </div>
     </DndContext>
   );

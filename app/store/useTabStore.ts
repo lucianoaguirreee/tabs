@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Tab, ZoneId, TabsState } from '../types/tabs';
+import { Tab, ZoneId, TabsState, ZoneLayout, LayoutDirection } from '../types/tabs';
 
 const initialTabs: Tab[] = [
   { id: 'tab-1', title: 'Tab 1', content: 'Content for Tab 1', color: 'bg-blue-500' },
@@ -9,6 +9,33 @@ const initialTabs: Tab[] = [
   { id: 'tab-5', title: 'Tab 5', content: 'Content for Tab 5', color: 'bg-pink-500' },
 ];
 
+// Initial layout: 2x2 grid
+const initialLayout: ZoneLayout = {
+  id: 'root',
+  type: 'split',
+  direction: 'vertical',
+  children: [
+    {
+      id: 'top',
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        { id: 'zone-1', type: 'zone', zoneId: 1 },
+        { id: 'zone-2', type: 'zone', zoneId: 2 },
+      ],
+    },
+    {
+      id: 'bottom',
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        { id: 'zone-3', type: 'zone', zoneId: 3 },
+        { id: 'zone-4', type: 'zone', zoneId: 4 },
+      ],
+    },
+  ],
+};
+
 export const useTabStore = create<TabsState>((set, get) => ({
   zones: {
     1: [initialTabs[0], initialTabs[1]],
@@ -16,6 +43,7 @@ export const useTabStore = create<TabsState>((set, get) => ({
     3: [initialTabs[3]],
     4: [initialTabs[4]],
   },
+  layout: initialLayout,
 
   addTab: (zoneId: ZoneId, tab: Tab) =>
     set((state) => ({
@@ -72,4 +100,80 @@ export const useTabStore = create<TabsState>((set, get) => ({
 
     return null;
   },
+
+  mergeZones: (zoneId1: ZoneId, zoneId2: ZoneId, direction: LayoutDirection) =>
+    set((state) => {
+      // Combine tabs from both zones into the first zone
+      const newZones = { ...state.zones };
+      newZones[zoneId1] = [...newZones[zoneId1], ...newZones[zoneId2]];
+      newZones[zoneId2] = [];
+
+      // Update layout to reflect the merge
+      const updateLayout = (layout: ZoneLayout): ZoneLayout => {
+        if (layout.type === 'zone') {
+          return layout;
+        }
+
+        if (layout.children) {
+          const newChildren = layout.children.map(updateLayout).filter((child) => {
+            // Remove the second zone from layout
+            return !(child.type === 'zone' && child.zoneId === zoneId2);
+          });
+
+          // If only one child left, collapse the split
+          if (newChildren.length === 1) {
+            return newChildren[0];
+          }
+
+          return { ...layout, children: newChildren };
+        }
+
+        return layout;
+      };
+
+      return { zones: newZones, layout: updateLayout(state.layout) };
+    }),
+
+  splitZone: (zoneId: ZoneId, direction: LayoutDirection) =>
+    set((state) => {
+      // Find an empty zone to use for the split
+      let emptyZone: ZoneId | null = null;
+      for (const key of Object.keys(state.zones)) {
+        const id = Number(key) as ZoneId;
+        if (state.zones[id].length === 0 && id !== zoneId) {
+          emptyZone = id;
+          break;
+        }
+      }
+
+      if (!emptyZone) return state; // No empty zones available
+
+      // Update layout to add the split
+      const updateLayout = (layout: ZoneLayout): ZoneLayout => {
+        if (layout.type === 'zone' && layout.zoneId === zoneId) {
+          return {
+            id: `split-${zoneId}-${emptyZone}`,
+            type: 'split',
+            direction,
+            children: [
+              { ...layout },
+              { id: `zone-${emptyZone}`, type: 'zone', zoneId: emptyZone },
+            ],
+          };
+        }
+
+        if (layout.children) {
+          return { ...layout, children: layout.children.map(updateLayout) };
+        }
+
+        return layout;
+      };
+
+      return { layout: updateLayout(state.layout) };
+    }),
+
+  setLayout: (layout: ZoneLayout) =>
+    set(() => ({
+      layout,
+    })),
 }));
