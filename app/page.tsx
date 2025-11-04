@@ -153,7 +153,21 @@ export default function Home() {
     group.forEach((tabId) => {
       newGroups.push([tabId]);
     });
-    updateActiveTab({ mergedGroups: newGroups });
+
+    // Detectar el tipo de merge y preservar el ancho configurado
+    const updates: Partial<Omit<TabData, 'id' | 'name'>> = { mergedGroups: newGroups };
+
+    // Si se separa 1-2 (horizontal arriba), transferir bottomRowColumnSplit a topRowColumnSplit
+    if (group.includes(1) && group.includes(2)) {
+      updates.topRowColumnSplit = activeTab.bottomRowColumnSplit;
+    }
+
+    // Si se separa 3-4 (horizontal abajo), transferir topRowColumnSplit a bottomRowColumnSplit
+    if (group.includes(3) && group.includes(4)) {
+      updates.bottomRowColumnSplit = activeTab.topRowColumnSplit;
+    }
+
+    updateActiveTab(updates);
   };
 
   const getTabColor = (tabId: TabId): string => {
