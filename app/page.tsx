@@ -2,11 +2,22 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 
+type InternalTab = {
+  id: string;
+  name: string;
+};
+
 type TabData = {
   id: string;
   name: string;
   topRowColumnSplit: number; // Ancho entre 1 y 2
   rowSplit: number; // Altura entre fila superior (1,2) y fila inferior (3+4)
+  panel1Tabs: InternalTab[];
+  panel2Tabs: InternalTab[];
+  panel3Tabs: InternalTab[];
+  activePanel1Tab: string | null;
+  activePanel2Tab: string | null;
+  activePanel3Tab: string | null;
 };
 
 const createNewTabData = (id: string, name: string): TabData => ({
@@ -14,6 +25,12 @@ const createNewTabData = (id: string, name: string): TabData => ({
   name,
   topRowColumnSplit: 50,
   rowSplit: 50,
+  panel1Tabs: [{ id: "p1-inicio", name: "Inicio" }],
+  panel2Tabs: [{ id: "p2-inicio", name: "Inicio" }],
+  panel3Tabs: [{ id: "p3-inicio", name: "Inicio" }],
+  activePanel1Tab: "p1-inicio",
+  activePanel2Tab: "p2-inicio",
+  activePanel3Tab: "p3-inicio",
 });
 
 export default function Home() {
@@ -32,12 +49,80 @@ export default function Home() {
   const [isDraggingTopRowVertical, setIsDraggingTopRowVertical] = useState(false);
   const [isDraggingRowSplit, setIsDraggingRowSplit] = useState(false);
 
+  const [draggedTab, setDraggedTab] = useState<{ tab: InternalTab; fromPanel: number } | null>(null);
+
   const updateActiveTab = (updates: Partial<Omit<TabData, 'id' | 'name'>>) => {
     setTabs((prevTabs) =>
       prevTabs.map((tab) =>
         tab.id === activeTabId ? { ...tab, ...updates } : tab
       )
     );
+  };
+
+  const handleDragStart = (tab: InternalTab, panelId: number) => {
+    setDraggedTab({ tab, fromPanel: panelId });
+  };
+
+  const handleDrop = (toPanelId: number) => {
+    if (!draggedTab) return;
+
+    const { tab, fromPanel } = draggedTab;
+    if (fromPanel === toPanelId) {
+      setDraggedTab(null);
+      return;
+    }
+
+    setTabs((prevTabs) =>
+      prevTabs.map((t) => {
+        if (t.id !== activeTabId) return t;
+
+        const fromKey = `panel${fromPanel}Tabs` as keyof Pick<TabData, 'panel1Tabs' | 'panel2Tabs' | 'panel3Tabs'>;
+        const toKey = `panel${toPanelId}Tabs` as keyof Pick<TabData, 'panel1Tabs' | 'panel2Tabs' | 'panel3Tabs'>;
+        const activeFromKey = `activePanel${fromPanel}Tab` as keyof Pick<TabData, 'activePanel1Tab' | 'activePanel2Tab' | 'activePanel3Tab'>;
+        const activeToKey = `activePanel${toPanelId}Tab` as keyof Pick<TabData, 'activePanel1Tab' | 'activePanel2Tab' | 'activePanel3Tab'>;
+
+        const newFromTabs = (t[fromKey] as InternalTab[]).filter((it) => it.id !== tab.id);
+        const newToTabs = [...(t[toKey] as InternalTab[]), tab];
+
+        return {
+          ...t,
+          [fromKey]: newFromTabs,
+          [toKey]: newToTabs,
+          [activeFromKey]: newFromTabs.length > 0 ? (newFromTabs[0].id) : null,
+          [activeToKey]: tab.id,
+        };
+      })
+    );
+
+    setDraggedTab(null);
+  };
+
+  const closeInternalTab = (panelId: number, tabId: string) => {
+    setTabs((prevTabs) =>
+      prevTabs.map((t) => {
+        if (t.id !== activeTabId) return t;
+
+        const tabsKey = `panel${panelId}Tabs` as keyof Pick<TabData, 'panel1Tabs' | 'panel2Tabs' | 'panel3Tabs'>;
+        const activeKey = `activePanel${panelId}Tab` as keyof Pick<TabData, 'activePanel1Tab' | 'activePanel2Tab' | 'activePanel3Tab'>;
+        const tabs = t[tabsKey] as InternalTab[];
+
+        if (tabs.length <= 1) return t;
+
+        const newTabs = tabs.filter((it) => it.id !== tabId);
+        const currentActive = t[activeKey];
+
+        return {
+          ...t,
+          [tabsKey]: newTabs,
+          [activeKey]: currentActive === tabId ? newTabs[0].id : currentActive,
+        };
+      })
+    );
+  };
+
+  const setActiveInternalTab = (panelId: number, tabId: string) => {
+    const activeKey = `activePanel${panelId}Tab` as keyof Pick<TabData, 'activePanel1Tab' | 'activePanel2Tab' | 'activePanel3Tab'>;
+    updateActiveTab({ [activeKey]: tabId } as any);
   };
 
   const createNewTab = () => {
@@ -116,13 +201,54 @@ export default function Home() {
     }
   }, [isDraggingTopRowVertical, isDraggingRowSplit, handleMouseMove, handleMouseUp]);
 
-  const renderTab = (tabId: number, label: string) => {
+  const renderTab = (panelId: number, label: string) => {
+    const tabsKey = `panel${panelId}Tabs` as keyof Pick<TabData, 'panel1Tabs' | 'panel2Tabs' | 'panel3Tabs'>;
+    const activeKey = `activePanel${panelId}Tab` as keyof Pick<TabData, 'activePanel1Tab' | 'activePanel2Tab' | 'activePanel3Tab'>;
+    const internalTabs = activeTab[tabsKey] as InternalTab[];
+    const activeInternalTabId = activeTab[activeKey] as string | null;
+
     return (
       <div
-        className={`relative flex flex-col items-center justify-center rounded-lg h-full w-full ${getTabColor(tabId)} transition-all`}
+        className={`relative flex flex-col rounded-lg h-full w-full ${getTabColor(panelId)} transition-all overflow-hidden`}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={() => handleDrop(panelId)}
       >
-        <div className="text-4xl font-bold text-white">
-          {label}
+        {/* Tab bar */}
+        <div className="flex items-center gap-1 bg-black bg-opacity-30 px-2 py-1">
+          {internalTabs.map((tab) => (
+            <div
+              key={tab.id}
+              draggable
+              onDragStart={() => handleDragStart(tab, panelId)}
+              onClick={() => setActiveInternalTab(panelId, tab.id)}
+              className={`group flex items-center gap-2 px-3 py-1.5 rounded-t cursor-move transition-all ${
+                activeInternalTabId === tab.id
+                  ? "bg-white bg-opacity-20 text-white"
+                  : "bg-white bg-opacity-5 text-white text-opacity-70 hover:bg-opacity-10"
+              }`}
+            >
+              <span className="text-xs font-medium select-none">{tab.name}</span>
+              {internalTabs.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    closeInternalTab(panelId, tab.id);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 hover:bg-white hover:bg-opacity-20 rounded p-0.5 transition-opacity"
+                  title="Cerrar tab"
+                >
+                  <span className="text-[10px]">✕</span>
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Content area */}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-4xl font-bold text-white opacity-50">
+            {label}
+          </div>
         </div>
       </div>
     );
