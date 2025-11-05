@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, TrendingDown, Users, DollarSign, FolderKanban, Activity, MapPin, Settings, FileText, UsersRound } from "lucide-react";
 
 type InternalTab = {
   id: string;
@@ -20,37 +24,79 @@ type TabData = {
 };
 
 const panel1Content = (
-  <div className="p-6 h-full overflow-auto">
-    <h1 className="text-3xl font-bold mb-6 text-white">Dashboard Principal</h1>
-    <div className="grid grid-cols-3 gap-4 mb-6">
-      <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-lg shadow-lg">
-        <div className="text-sm font-medium mb-2">Total Usuarios</div>
-        <div className="text-4xl font-bold">1,234</div>
-        <div className="text-xs mt-2 opacity-80">↑ 12% vs mes anterior</div>
-      </div>
-      <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-lg shadow-lg">
-        <div className="text-sm font-medium mb-2">Ingresos</div>
-        <div className="text-4xl font-bold">$45.2K</div>
-        <div className="text-xs mt-2 opacity-80">↑ 8% vs mes anterior</div>
-      </div>
-      <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-lg shadow-lg">
-        <div className="text-sm font-medium mb-2">Proyectos</div>
-        <div className="text-4xl font-bold">32</div>
-        <div className="text-xs mt-2 opacity-80">↓ 2% vs mes anterior</div>
-      </div>
+  <div className="p-6 h-full overflow-auto space-y-6">
+    <div>
+      <h1 className="text-3xl font-bold text-white mb-2">Dashboard Principal</h1>
+      <p className="text-zinc-400">Vista general de tu sistema</p>
     </div>
-    <div className="bg-zinc-800 bg-opacity-50 p-6 rounded-lg">
-      <h3 className="text-xl font-bold mb-4">Actividad Reciente</h3>
-      <div className="space-y-3">
-        {['Nuevo usuario registrado', 'Proyecto "Alpha" completado', 'Actualización del sistema', 'Backup realizado'].map((item, i) => (
-          <div key={i} className="flex items-center gap-3 p-3 bg-white bg-opacity-5 rounded">
-            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-            <span>{item}</span>
-            <span className="ml-auto text-sm opacity-60">Hace {i + 1}h</span>
+
+    <div className="grid grid-cols-3 gap-4">
+      <Card className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 border-blue-500/30">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium text-blue-100">Total Usuarios</CardTitle>
+          <Users className="h-4 w-4 text-blue-300" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold text-white">1,234</div>
+          <div className="flex items-center gap-1 text-xs text-blue-200 mt-1">
+            <TrendingUp className="h-3 w-3" />
+            <span>12% desde el mes pasado</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-gradient-to-br from-green-500/20 to-green-600/20 border-green-500/30">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium text-green-100">Ingresos</CardTitle>
+          <DollarSign className="h-4 w-4 text-green-300" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold text-white">$45.2K</div>
+          <div className="flex items-center gap-1 text-xs text-green-200 mt-1">
+            <TrendingUp className="h-3 w-3" />
+            <span>8% desde el mes pasado</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 border-purple-500/30">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium text-purple-100">Proyectos</CardTitle>
+          <FolderKanban className="h-4 w-4 text-purple-300" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold text-white">32</div>
+          <div className="flex items-center gap-1 text-xs text-purple-200 mt-1">
+            <TrendingDown className="h-3 w-3" />
+            <span>2% desde el mes pasado</span>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Activity className="h-5 w-5" />
+          Actividad Reciente
+        </CardTitle>
+        <CardDescription>Últimas actualizaciones del sistema</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {[
+          { text: 'Nuevo usuario registrado', time: '1h', status: 'success' },
+          { text: 'Proyecto "Alpha" completado', time: '2h', status: 'success' },
+          { text: 'Actualización del sistema', time: '3h', status: 'warning' },
+          { text: 'Backup realizado', time: '4h', status: 'success' }
+        ].map((item, i) => (
+          <div key={i} className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700/50 bg-zinc-800/30 hover:bg-zinc-700/30 transition-colors">
+            <div className={`w-2 h-2 rounded-full ${item.status === 'success' ? 'bg-green-400' : 'bg-yellow-400'}`}></div>
+            <span className="flex-1 text-sm text-zinc-200">{item.text}</span>
+            <Badge variant="outline" className="text-xs">Hace {item.time}</Badge>
           </div>
         ))}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   </div>
 );
 
@@ -64,28 +110,37 @@ const createNewTabData = (id: string, name: string): TabData => ({
       id: "p2-map",
       name: "🗺️ Mapa",
       content: (
-        <div className="h-full flex flex-col">
-          <div className="p-4 bg-zinc-800 bg-opacity-50 border-b border-white border-opacity-10">
-            <h1 className="text-2xl font-bold text-white mb-2">Vista del Mapa</h1>
+        <div className="h-full flex flex-col p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <MapPin className="h-6 w-6" />
+                Vista del Mapa
+              </h1>
+              <p className="text-sm text-zinc-400 mt-1">Ubicaciones en tiempo real</p>
+            </div>
             <div className="flex gap-2">
-              <button className="px-3 py-1 bg-blue-500 rounded text-sm">Satélite</button>
-              <button className="px-3 py-1 bg-zinc-700 rounded text-sm">Terreno</button>
-              <button className="px-3 py-1 bg-zinc-700 rounded text-sm">Tráfico</button>
+              <Button size="sm">Satélite</Button>
+              <Button size="sm" variant="outline">Terreno</Button>
+              <Button size="sm" variant="outline">Tráfico</Button>
             </div>
           </div>
-          <div className="flex-1 relative bg-gradient-to-br from-green-900 via-green-700 to-blue-900">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-6xl mb-4">🗺️</div>
-                <div className="text-2xl font-bold mb-2">Mapa Interactivo</div>
-                <div className="text-sm opacity-70">Vista de ubicaciones en tiempo real</div>
+
+          <Card className="flex-1 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-900 via-green-700 to-blue-900">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <MapPin className="h-16 w-16 mb-4 mx-auto text-green-200" />
+                  <div className="text-2xl font-bold mb-2 text-white">Mapa Interactivo</div>
+                  <Badge variant="secondary" className="mt-2">3 ubicaciones activas</Badge>
+                </div>
               </div>
+              {/* Marcadores simulados */}
+              <div className="absolute top-1/4 left-1/3 w-4 h-4 bg-red-500 rounded-full shadow-lg animate-pulse border-2 border-white"></div>
+              <div className="absolute top-2/3 left-2/3 w-4 h-4 bg-red-500 rounded-full shadow-lg animate-pulse border-2 border-white"></div>
+              <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-red-500 rounded-full shadow-lg animate-pulse border-2 border-white"></div>
             </div>
-            {/* Marcadores simulados */}
-            <div className="absolute top-1/4 left-1/3 w-4 h-4 bg-red-500 rounded-full shadow-lg animate-pulse"></div>
-            <div className="absolute top-2/3 left-2/3 w-4 h-4 bg-red-500 rounded-full shadow-lg animate-pulse"></div>
-            <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-red-500 rounded-full shadow-lg animate-pulse"></div>
-          </div>
+          </Card>
         </div>
       )
     },
@@ -93,36 +148,64 @@ const createNewTabData = (id: string, name: string): TabData => ({
       id: "p2-settings",
       name: "⚙️ Configuración",
       content: (
-        <div className="p-6 h-full">
-          <h1 className="text-3xl font-bold mb-6 text-white">Configuración del Sistema</h1>
-          <div className="space-y-6 max-w-2xl">
-            <div className="bg-zinc-800 bg-opacity-50 p-6 rounded-lg">
-              <h3 className="text-lg font-bold mb-4">Perfil de Usuario</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm mb-2">Nombre</label>
-                  <input type="text" className="w-full bg-zinc-700 px-4 py-2 rounded" placeholder="Juan Pérez" />
-                </div>
-                <div>
-                  <label className="block text-sm mb-2">Email</label>
-                  <input type="email" className="w-full bg-zinc-700 px-4 py-2 rounded" placeholder="juan@ejemplo.com" />
-                </div>
+        <div className="p-6 h-full overflow-auto space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+              <Settings className="h-7 w-7" />
+              Configuración del Sistema
+            </h1>
+            <p className="text-zinc-400 mt-1">Administra tus preferencias</p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Perfil de Usuario</CardTitle>
+              <CardDescription>Información personal de la cuenta</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-zinc-300">Nombre</label>
+                <input
+                  type="text"
+                  className="w-full bg-zinc-800 border border-zinc-700 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500 text-white"
+                  placeholder="Juan Pérez"
+                />
               </div>
-            </div>
-            <div className="bg-zinc-800 bg-opacity-50 p-6 rounded-lg">
-              <h3 className="text-lg font-bold mb-4">Preferencias</h3>
-              <div className="space-y-3">
-                {['Notificaciones por email', 'Modo oscuro', 'Actualización automática', 'Compartir datos analíticos'].map((item, i) => (
-                  <label key={i} className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" defaultChecked={i < 2} className="w-5 h-5" />
-                    <span>{item}</span>
-                  </label>
-                ))}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-zinc-300">Email</label>
+                <input
+                  type="email"
+                  className="w-full bg-zinc-800 border border-zinc-700 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500 text-white"
+                  placeholder="juan@ejemplo.com"
+                />
               </div>
-            </div>
-            <button className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded font-medium">
-              Guardar Cambios
-            </button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Preferencias</CardTitle>
+              <CardDescription>Personaliza tu experiencia</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[
+                { label: 'Notificaciones por email', checked: true },
+                { label: 'Modo oscuro', checked: true },
+                { label: 'Actualización automática', checked: false },
+                { label: 'Compartir datos analíticos', checked: false }
+              ].map((item, i) => (
+                <label key={i} className="flex items-center gap-3 cursor-pointer p-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
+                  <input type="checkbox" defaultChecked={item.checked} className="w-4 h-4" />
+                  <span className="text-sm text-zinc-200">{item.label}</span>
+                  {item.checked && <Badge variant="success" className="ml-auto">Activo</Badge>}
+                </label>
+              ))}
+            </CardContent>
+          </Card>
+
+          <div className="flex gap-2">
+            <Button>Guardar Cambios</Button>
+            <Button variant="outline">Cancelar</Button>
           </div>
         </div>
       )
@@ -133,49 +216,62 @@ const createNewTabData = (id: string, name: string): TabData => ({
       id: "p3-files",
       name: "📁 Archivos",
       content: (
-        <div className="p-6 h-full">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-white">Explorador de Archivos</h1>
-            <button className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded font-medium">
-              + Nuevo Archivo
-            </button>
-          </div>
-          <div className="bg-zinc-800 bg-opacity-50 rounded-lg overflow-hidden">
-            <div className="grid grid-cols-5 gap-4 p-4 bg-zinc-900 bg-opacity-50 font-bold border-b border-white border-opacity-10">
-              <div>Nombre</div>
-              <div>Tipo</div>
-              <div>Tamaño</div>
-              <div>Modificado</div>
-              <div>Estado</div>
+        <div className="p-6 h-full overflow-auto space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+                <FileText className="h-7 w-7" />
+                Explorador de Archivos
+              </h1>
+              <p className="text-zinc-400 mt-1">Gestiona tus documentos</p>
             </div>
-            <div className="divide-y divide-white divide-opacity-5">
-              {[
-                { name: 'Proyecto_Final.pdf', type: 'PDF', size: '2.4 MB', date: '12 Nov 2024', status: 'Listo' },
-                { name: 'Presentación.pptx', type: 'PowerPoint', size: '5.8 MB', date: '11 Nov 2024', status: 'Listo' },
-                { name: 'Datos_2024.xlsx', type: 'Excel', size: '892 KB', date: '10 Nov 2024', status: 'Procesando' },
-                { name: 'Imagen_Banner.png', type: 'Imagen', size: '1.2 MB', date: '09 Nov 2024', status: 'Listo' },
-                { name: 'Video_Tutorial.mp4', type: 'Video', size: '45.6 MB', date: '08 Nov 2024', status: 'Listo' },
-                { name: 'Backup_Sistema.zip', type: 'Archivo', size: '128 MB', date: '07 Nov 2024', status: 'Listo' },
-              ].map((file, i) => (
-                <div key={i} className="grid grid-cols-5 gap-4 p-4 hover:bg-white hover:bg-opacity-5 cursor-pointer transition">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">📄</span>
-                    <span>{file.name}</span>
-                  </div>
-                  <div className="flex items-center text-sm opacity-70">{file.type}</div>
-                  <div className="flex items-center text-sm opacity-70">{file.size}</div>
-                  <div className="flex items-center text-sm opacity-70">{file.date}</div>
-                  <div className="flex items-center">
-                    <span className={`px-3 py-1 rounded-full text-xs ${
-                      file.status === 'Listo' ? 'bg-green-500 bg-opacity-20 text-green-300' : 'bg-yellow-500 bg-opacity-20 text-yellow-300'
-                    }`}>
-                      {file.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Button>+ Nuevo Archivo</Button>
           </div>
+
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-zinc-700 bg-zinc-800/50">
+                      <th className="text-left p-4 font-semibold text-sm text-zinc-300">Nombre</th>
+                      <th className="text-left p-4 font-semibold text-sm text-zinc-300">Tipo</th>
+                      <th className="text-left p-4 font-semibold text-sm text-zinc-300">Tamaño</th>
+                      <th className="text-left p-4 font-semibold text-sm text-zinc-300">Modificado</th>
+                      <th className="text-left p-4 font-semibold text-sm text-zinc-300">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-700/50">
+                    {[
+                      { name: 'Proyecto_Final.pdf', type: 'PDF', size: '2.4 MB', date: '12 Nov 2024', status: 'Listo', icon: '📄' },
+                      { name: 'Presentación.pptx', type: 'PowerPoint', size: '5.8 MB', date: '11 Nov 2024', status: 'Listo', icon: '📊' },
+                      { name: 'Datos_2024.xlsx', type: 'Excel', size: '892 KB', date: '10 Nov 2024', status: 'Procesando', icon: '📈' },
+                      { name: 'Imagen_Banner.png', type: 'Imagen', size: '1.2 MB', date: '09 Nov 2024', status: 'Listo', icon: '🖼️' },
+                      { name: 'Video_Tutorial.mp4', type: 'Video', size: '45.6 MB', date: '08 Nov 2024', status: 'Listo', icon: '🎥' },
+                      { name: 'Backup_Sistema.zip', type: 'Archivo', size: '128 MB', date: '07 Nov 2024', status: 'Listo', icon: '📦' },
+                    ].map((file, i) => (
+                      <tr key={i} className="hover:bg-zinc-800/30 cursor-pointer transition-colors">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{file.icon}</span>
+                            <span className="font-medium text-zinc-200">{file.name}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-sm text-zinc-400">{file.type}</td>
+                        <td className="p-4 text-sm text-zinc-400">{file.size}</td>
+                        <td className="p-4 text-sm text-zinc-400">{file.date}</td>
+                        <td className="p-4">
+                          <Badge variant={file.status === 'Listo' ? 'success' : 'warning'}>
+                            {file.status}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )
     },
@@ -183,9 +279,16 @@ const createNewTabData = (id: string, name: string): TabData => ({
       id: "p3-team",
       name: "👥 Equipo",
       content: (
-        <div className="p-6 h-full">
-          <h1 className="text-3xl font-bold mb-6 text-white">Gestión de Equipo</h1>
-          <div className="grid grid-cols-3 gap-6">
+        <div className="p-6 h-full overflow-auto space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+              <UsersRound className="h-7 w-7" />
+              Gestión de Equipo
+            </h1>
+            <p className="text-zinc-400 mt-1">Colaboradores y sus roles</p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
             {[
               { name: 'María González', role: 'CEO', avatar: '👩‍💼', status: 'online' },
               { name: 'Carlos Ruiz', role: 'CTO', avatar: '👨‍💻', status: 'online' },
@@ -194,20 +297,26 @@ const createNewTabData = (id: string, name: string): TabData => ({
               { name: 'Laura Sánchez', role: 'Marketing', avatar: '👩‍💼', status: 'offline' },
               { name: 'Diego Torres', role: 'Ventas', avatar: '👨‍💼', status: 'online' },
             ].map((member, i) => (
-              <div key={i} className="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-lg shadow-lg hover:scale-105 transition-transform">
-                <div className="text-center">
-                  <div className="text-6xl mb-3">{member.avatar}</div>
-                  <h3 className="text-lg font-bold mb-1">{member.name}</h3>
-                  <p className="text-sm opacity-70 mb-3">{member.role}</p>
-                  <div className="flex items-center justify-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${
-                      member.status === 'online' ? 'bg-green-400' :
-                      member.status === 'away' ? 'bg-yellow-400' : 'bg-gray-400'
-                    }`}></div>
-                    <span className="text-xs capitalize">{member.status}</span>
+              <Card key={i} className="hover:scale-105 transition-transform cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="text-center space-y-3">
+                    <div className="text-5xl mb-2">{member.avatar}</div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white">{member.name}</h3>
+                      <p className="text-sm text-zinc-400">{member.role}</p>
+                    </div>
+                    <Badge
+                      variant={
+                        member.status === 'online' ? 'success' :
+                        member.status === 'away' ? 'warning' : 'secondary'
+                      }
+                      className="capitalize"
+                    >
+                      {member.status}
+                    </Badge>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
