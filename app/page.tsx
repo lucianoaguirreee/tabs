@@ -5,6 +5,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 type InternalTab = {
   id: string;
   name: string;
+  content: React.ReactNode;
 };
 
 type TabData = {
@@ -25,9 +26,39 @@ const createNewTabData = (id: string, name: string): TabData => ({
   name,
   topRowColumnSplit: 50,
   rowSplit: 50,
-  panel1Tabs: [{ id: "p1-inicio", name: "Inicio" }],
-  panel2Tabs: [{ id: "p2-inicio", name: "Inicio" }],
-  panel3Tabs: [{ id: "p3-inicio", name: "Inicio" }],
+  panel1Tabs: [{
+    id: "p1-inicio",
+    name: "Inicio",
+    content: (
+      <div className="p-4">
+        <h2 className="text-2xl font-bold mb-4">Panel 1 - Inicio</h2>
+        <p className="mb-2">Este es el contenido de la tab Inicio del Panel 1</p>
+        <p className="text-sm opacity-70">Puedes arrastrar esta tab a otros paneles</p>
+      </div>
+    )
+  }],
+  panel2Tabs: [{
+    id: "p2-inicio",
+    name: "Inicio",
+    content: (
+      <div className="p-4">
+        <h2 className="text-2xl font-bold mb-4">Panel 2 - Inicio</h2>
+        <p className="mb-2">Este es el contenido de la tab Inicio del Panel 2</p>
+        <p className="text-sm opacity-70">Puedes arrastrar esta tab a otros paneles</p>
+      </div>
+    )
+  }],
+  panel3Tabs: [{
+    id: "p3-inicio",
+    name: "Inicio",
+    content: (
+      <div className="p-4">
+        <h2 className="text-2xl font-bold mb-4">Panel 3+4 - Inicio</h2>
+        <p className="mb-2">Este es el contenido de la tab Inicio del Panel 3+4</p>
+        <p className="text-sm opacity-70">Puedes arrastrar esta tab a otros paneles</p>
+      </div>
+    )
+  }],
   activePanel1Tab: "p1-inicio",
   activePanel2Tab: "p2-inicio",
   activePanel3Tab: "p3-inicio",
@@ -245,10 +276,12 @@ export default function Home() {
         </div>
 
         {/* Content area */}
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-4xl font-bold text-white opacity-50">
-            {label}
-          </div>
+        <div className="flex-1 overflow-auto bg-white bg-opacity-10 text-white">
+          {activeInternalTabId && (
+            <>
+              {internalTabs.find((tab) => tab.id === activeInternalTabId)?.content}
+            </>
+          )}
         </div>
       </div>
     );
