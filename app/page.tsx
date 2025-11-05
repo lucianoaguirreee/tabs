@@ -4,7 +4,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, Users, DollarSign, FolderKanban, Activity, MapPin, Settings, FileText, UsersRound } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { TrendingUp, TrendingDown, Users, DollarSign, FolderKanban, Activity, MapPin, Settings, FileText, UsersRound, X } from "lucide-react";
 
 type InternalTab = {
   id: string;
@@ -531,52 +532,44 @@ export default function Home() {
         onDragOver={(e) => e.preventDefault()}
         onDrop={() => handleDrop(panelId)}
       >
-        {/* Tab bar */}
-        <div className="flex items-center gap-1 bg-black bg-opacity-50 px-2 py-1.5 border-b-2 border-white border-opacity-10">
-          {internalTabs.map((tab) => (
-            <div
-              key={tab.id}
-              draggable
-              onDragStart={() => handleDragStart(tab, panelId)}
-              className={`group relative flex items-center gap-4 px-4 py-2.5 rounded-t cursor-move transition-all ${
-                activeInternalTabId === tab.id
-                  ? "bg-white bg-opacity-25 text-white font-semibold shadow-lg scale-105"
-                  : "bg-white bg-opacity-5 text-white text-opacity-60 hover:bg-opacity-15 hover:text-opacity-90"
-              }`}
-            >
-              {activeInternalTabId === tab.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white rounded-t-full"></div>
-              )}
-              <span
-                onClick={() => setActiveInternalTab(panelId, tab.id)}
-                className={`text-base select-none ${activeInternalTabId === tab.id ? 'font-bold' : 'font-medium'} flex-shrink-0`}
+        <Tabs value={activeInternalTabId || undefined} onValueChange={(value) => setActiveInternalTab(panelId, value)} className="h-full flex flex-col">
+          <TabsList className="w-full justify-start rounded-none bg-zinc-800/80 backdrop-blur border-b border-zinc-700/50 h-auto p-1">
+            {internalTabs.map((tab) => (
+              <div
+                key={tab.id}
+                draggable
+                onDragStart={() => handleDragStart(tab, panelId)}
+                className="group relative flex items-center"
               >
-                {tab.name}
-              </span>
-              {internalTabs.length > 1 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    closeInternalTab(panelId, tab.id);
-                  }}
-                  className="opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:bg-opacity-80 bg-red-600 bg-opacity-60 rounded-full p-1.5 transition-all ml-2 flex-shrink-0"
-                  title="Cerrar tab"
+                <TabsTrigger
+                  value={tab.id}
+                  className="relative data-[state=active]:bg-zinc-700/50 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 cursor-move"
                 >
-                  <span className="text-xs font-bold leading-none">✕</span>
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
+                  <span className="text-sm">{tab.name}</span>
+                  {internalTabs.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        closeInternalTab(panelId, tab.id);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 h-5 w-5 ml-2 hover:bg-red-500/20 hover:text-red-400"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
+                </TabsTrigger>
+              </div>
+            ))}
+          </TabsList>
 
-        {/* Content area */}
-        <div className="flex-1 overflow-auto bg-zinc-900 bg-opacity-40 text-white">
-          {activeInternalTabId && (
-            <>
-              {internalTabs.find((tab) => tab.id === activeInternalTabId)?.content}
-            </>
-          )}
-        </div>
+          {internalTabs.map((tab) => (
+            <TabsContent key={tab.id} value={tab.id} className="flex-1 overflow-auto bg-zinc-900 bg-opacity-40 text-white mt-0 p-0">
+              {tab.content}
+            </TabsContent>
+          ))}
+        </Tabs>
       </div>
     );
   };
@@ -584,7 +577,7 @@ export default function Home() {
   return (
     <div className="flex h-full w-full flex-col bg-zinc-900 overflow-hidden">
       {/* Grid principal */}
-      <div className="flex-1 p-4 pb-0 overflow-hidden">
+      <div className="flex-1 p-4 overflow-hidden">
         <div ref={containerRef} className="relative h-full w-full flex flex-col gap-2">
           {/* Fila superior: 1 y 2 separadas */}
           <div ref={topRowRef} className="relative flex gap-2 overflow-hidden" style={{ height: `${activeTab.rowSplit}%` }}>
@@ -616,41 +609,42 @@ export default function Home() {
       </div>
 
       {/* Bottom Tabs */}
-      <div className="flex items-center gap-1 bg-zinc-800 px-2 py-1 border-t border-zinc-700 flex-shrink-0">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTabId(tab.id)}
-            className={`group flex items-center gap-2 px-4 py-2 rounded-t-lg transition-all ${
-              activeTab.id === tab.id
-                ? "bg-zinc-900 text-white"
-                : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
-            }`}
-          >
-            <span className="text-sm font-medium">{tab.name}</span>
-            {tabs.length > 1 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  closeTab(tab.id);
-                }}
-                className="opacity-0 group-hover:opacity-100 hover:bg-zinc-600 rounded p-0.5 transition-opacity"
-                title="Cerrar tab"
+      <Tabs value={activeTabId} onValueChange={setActiveTabId} className="flex-shrink-0">
+        <TabsList className="w-full justify-start rounded-none bg-zinc-800/95 backdrop-blur h-auto p-0 border-t border-zinc-700/50">
+          {tabs.map((tab) => (
+            <div key={tab.id} className="group relative flex items-center">
+              <TabsTrigger
+                value={tab.id}
+                className="relative data-[state=active]:bg-zinc-900 data-[state=active]:text-white data-[state=active]:shadow-none rounded-none border-t-2 border-transparent data-[state=active]:border-t-zinc-400 px-4 py-2.5"
               >
-                <span className="text-xs">✕</span>
-              </button>
-            )}
-          </button>
-        ))}
-
-        <button
-          onClick={createNewTab}
-          className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-zinc-300 transition-all ml-1"
-          title="Nuevo tab"
-        >
-          <span className="text-lg">+</span>
-        </button>
-      </div>
+                <span className="text-sm font-medium">{tab.name}</span>
+                {tabs.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      closeTab(tab.id);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 h-5 w-5 ml-2 hover:bg-zinc-600/50"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </TabsTrigger>
+            </div>
+          ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={createNewTab}
+            className="ml-2 h-9 px-2 hover:bg-zinc-700/50"
+            title="Nuevo tab"
+          >
+            <span className="text-lg">+</span>
+          </Button>
+        </TabsList>
+      </Tabs>
     </div>
   );
 }
