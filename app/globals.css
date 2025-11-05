@@ -29,13 +29,12 @@ body {
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(113, 113, 122, 0.5) transparent;
-  scrollbar-gutter: stable;
 }
 
-/* Custom scrollbar ultra delgado para que el gutter no se note */
+/* Custom scrollbar delgado */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -44,7 +43,7 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: rgba(113, 113, 122, 0.4);
-  border-radius: 2px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
