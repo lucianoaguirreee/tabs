@@ -13,106 +13,52 @@ type TabData = {
   name: string;
   topRowColumnSplit: number; // Ancho entre 1 y 2
   rowSplit: number; // Altura entre fila superior (1,2) y fila inferior (3+4)
-  panel1Tabs: InternalTab[];
   panel2Tabs: InternalTab[];
   panel3Tabs: InternalTab[];
-  activePanel1Tab: string | null;
   activePanel2Tab: string | null;
   activePanel3Tab: string | null;
 };
+
+const panel1Content = (
+  <div className="p-6 h-full overflow-auto">
+    <h1 className="text-3xl font-bold mb-6 text-white">Dashboard Principal</h1>
+    <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-lg shadow-lg">
+        <div className="text-sm font-medium mb-2">Total Usuarios</div>
+        <div className="text-4xl font-bold">1,234</div>
+        <div className="text-xs mt-2 opacity-80">↑ 12% vs mes anterior</div>
+      </div>
+      <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-lg shadow-lg">
+        <div className="text-sm font-medium mb-2">Ingresos</div>
+        <div className="text-4xl font-bold">$45.2K</div>
+        <div className="text-xs mt-2 opacity-80">↑ 8% vs mes anterior</div>
+      </div>
+      <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-lg shadow-lg">
+        <div className="text-sm font-medium mb-2">Proyectos</div>
+        <div className="text-4xl font-bold">32</div>
+        <div className="text-xs mt-2 opacity-80">↓ 2% vs mes anterior</div>
+      </div>
+    </div>
+    <div className="bg-zinc-800 bg-opacity-50 p-6 rounded-lg">
+      <h3 className="text-xl font-bold mb-4">Actividad Reciente</h3>
+      <div className="space-y-3">
+        {['Nuevo usuario registrado', 'Proyecto "Alpha" completado', 'Actualización del sistema', 'Backup realizado'].map((item, i) => (
+          <div key={i} className="flex items-center gap-3 p-3 bg-white bg-opacity-5 rounded">
+            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+            <span>{item}</span>
+            <span className="ml-auto text-sm opacity-60">Hace {i + 1}h</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 const createNewTabData = (id: string, name: string): TabData => ({
   id,
   name,
   topRowColumnSplit: 50,
   rowSplit: 50,
-  panel1Tabs: [
-    {
-      id: "p1-dashboard",
-      name: "📊 Dashboard",
-      content: (
-        <div className="p-6 h-full">
-          <h1 className="text-3xl font-bold mb-6 text-white">Dashboard Principal</h1>
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-lg shadow-lg">
-              <div className="text-sm font-medium mb-2">Total Usuarios</div>
-              <div className="text-4xl font-bold">1,234</div>
-              <div className="text-xs mt-2 opacity-80">↑ 12% vs mes anterior</div>
-            </div>
-            <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-lg shadow-lg">
-              <div className="text-sm font-medium mb-2">Ingresos</div>
-              <div className="text-4xl font-bold">$45.2K</div>
-              <div className="text-xs mt-2 opacity-80">↑ 8% vs mes anterior</div>
-            </div>
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-lg shadow-lg">
-              <div className="text-sm font-medium mb-2">Proyectos</div>
-              <div className="text-4xl font-bold">32</div>
-              <div className="text-xs mt-2 opacity-80">↓ 2% vs mes anterior</div>
-            </div>
-          </div>
-          <div className="bg-zinc-800 bg-opacity-50 p-6 rounded-lg">
-            <h3 className="text-xl font-bold mb-4">Actividad Reciente</h3>
-            <div className="space-y-3">
-              {['Nuevo usuario registrado', 'Proyecto "Alpha" completado', 'Actualización del sistema', 'Backup realizado'].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 bg-white bg-opacity-5 rounded">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span>{item}</span>
-                  <span className="ml-auto text-sm opacity-60">Hace {i + 1}h</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: "p1-analytics",
-      name: "📈 Analytics",
-      content: (
-        <div className="p-6 h-full">
-          <h1 className="text-3xl font-bold mb-6 text-white">Analytics & Métricas</h1>
-          <div className="grid grid-cols-2 gap-6">
-            <div className="bg-zinc-800 bg-opacity-50 p-6 rounded-lg">
-              <h3 className="text-lg font-bold mb-4">Tráfico Mensual</h3>
-              <div className="space-y-2">
-                {[80, 65, 90, 75, 95, 70, 85].map((val, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-sm w-8">{i + 1}d</span>
-                    <div className="flex-1 bg-zinc-700 rounded-full h-6">
-                      <div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-6 rounded-full" style={{ width: `${val}%` }}></div>
-                    </div>
-                    <span className="text-sm w-12">{val}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="bg-zinc-800 bg-opacity-50 p-6 rounded-lg">
-              <h3 className="text-lg font-bold mb-4">Distribución por País</h3>
-              <div className="space-y-3">
-                {[
-                  { country: 'Estados Unidos', percent: 45, color: 'bg-blue-500' },
-                  { country: 'España', percent: 25, color: 'bg-yellow-500' },
-                  { country: 'México', percent: 15, color: 'bg-green-500' },
-                  { country: 'Argentina', percent: 10, color: 'bg-cyan-500' },
-                  { country: 'Otros', percent: 5, color: 'bg-purple-500' }
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <span className="text-sm">{item.country}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 bg-zinc-700 rounded-full h-3">
-                        <div className={`${item.color} h-3 rounded-full`} style={{ width: `${item.percent}%` }}></div>
-                      </div>
-                      <span className="text-sm w-10 text-right">{item.percent}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )
-    }
-  ],
   panel2Tabs: [
     {
       id: "p2-map",
@@ -268,7 +214,6 @@ const createNewTabData = (id: string, name: string): TabData => ({
       )
     }
   ],
-  activePanel1Tab: "p1-dashboard",
   activePanel2Tab: "p2-map",
   activePanel3Tab: "p3-files",
 });
@@ -306,6 +251,12 @@ export default function Home() {
   const handleDrop = (toPanelId: number) => {
     if (!draggedTab) return;
 
+    // Panel 1 no acepta tabs
+    if (toPanelId === 1) {
+      setDraggedTab(null);
+      return;
+    }
+
     const { tab, fromPanel } = draggedTab;
     if (fromPanel === toPanelId) {
       setDraggedTab(null);
@@ -316,10 +267,10 @@ export default function Home() {
       prevTabs.map((t) => {
         if (t.id !== activeTabId) return t;
 
-        const fromKey = `panel${fromPanel}Tabs` as keyof Pick<TabData, 'panel1Tabs' | 'panel2Tabs' | 'panel3Tabs'>;
-        const toKey = `panel${toPanelId}Tabs` as keyof Pick<TabData, 'panel1Tabs' | 'panel2Tabs' | 'panel3Tabs'>;
-        const activeFromKey = `activePanel${fromPanel}Tab` as keyof Pick<TabData, 'activePanel1Tab' | 'activePanel2Tab' | 'activePanel3Tab'>;
-        const activeToKey = `activePanel${toPanelId}Tab` as keyof Pick<TabData, 'activePanel1Tab' | 'activePanel2Tab' | 'activePanel3Tab'>;
+        const fromKey = `panel${fromPanel}Tabs` as keyof Pick<TabData, 'panel2Tabs' | 'panel3Tabs'>;
+        const toKey = `panel${toPanelId}Tabs` as keyof Pick<TabData, 'panel2Tabs' | 'panel3Tabs'>;
+        const activeFromKey = `activePanel${fromPanel}Tab` as keyof Pick<TabData, 'activePanel2Tab' | 'activePanel3Tab'>;
+        const activeToKey = `activePanel${toPanelId}Tab` as keyof Pick<TabData, 'activePanel2Tab' | 'activePanel3Tab'>;
 
         const newFromTabs = (t[fromKey] as InternalTab[]).filter((it) => it.id !== tab.id);
         const newToTabs = [...(t[toKey] as InternalTab[]), tab];
@@ -338,12 +289,14 @@ export default function Home() {
   };
 
   const closeInternalTab = (panelId: number, tabId: string) => {
+    if (panelId === 1) return; // Panel 1 no tiene tabs
+
     setTabs((prevTabs) =>
       prevTabs.map((t) => {
         if (t.id !== activeTabId) return t;
 
-        const tabsKey = `panel${panelId}Tabs` as keyof Pick<TabData, 'panel1Tabs' | 'panel2Tabs' | 'panel3Tabs'>;
-        const activeKey = `activePanel${panelId}Tab` as keyof Pick<TabData, 'activePanel1Tab' | 'activePanel2Tab' | 'activePanel3Tab'>;
+        const tabsKey = `panel${panelId}Tabs` as keyof Pick<TabData, 'panel2Tabs' | 'panel3Tabs'>;
+        const activeKey = `activePanel${panelId}Tab` as keyof Pick<TabData, 'activePanel2Tab' | 'activePanel3Tab'>;
         const tabs = t[tabsKey] as InternalTab[];
 
         if (tabs.length <= 1) return t;
@@ -361,7 +314,9 @@ export default function Home() {
   };
 
   const setActiveInternalTab = (panelId: number, tabId: string) => {
-    const activeKey = `activePanel${panelId}Tab` as keyof Pick<TabData, 'activePanel1Tab' | 'activePanel2Tab' | 'activePanel3Tab'>;
+    if (panelId === 1) return; // Panel 1 no tiene tabs
+
+    const activeKey = `activePanel${panelId}Tab` as keyof Pick<TabData, 'activePanel2Tab' | 'activePanel3Tab'>;
     updateActiveTab({ [activeKey]: tabId } as any);
   };
 
@@ -442,8 +397,22 @@ export default function Home() {
   }, [isDraggingTopRowVertical, isDraggingRowSplit, handleMouseMove, handleMouseUp]);
 
   const renderTab = (panelId: number, label: string) => {
-    const tabsKey = `panel${panelId}Tabs` as keyof Pick<TabData, 'panel1Tabs' | 'panel2Tabs' | 'panel3Tabs'>;
-    const activeKey = `activePanel${panelId}Tab` as keyof Pick<TabData, 'activePanel1Tab' | 'activePanel2Tab' | 'activePanel3Tab'>;
+    // Panel 1 no tiene tabs, solo contenido fijo
+    if (panelId === 1) {
+      return (
+        <div
+          className={`relative flex flex-col rounded-lg h-full w-full ${getTabColor(panelId)} transition-all overflow-hidden`}
+        >
+          <div className="flex-1 overflow-auto bg-zinc-900 bg-opacity-40 text-white">
+            {panel1Content}
+          </div>
+        </div>
+      );
+    }
+
+    // Paneles 2 y 3 tienen tabs
+    const tabsKey = `panel${panelId}Tabs` as keyof Pick<TabData, 'panel2Tabs' | 'panel3Tabs'>;
+    const activeKey = `activePanel${panelId}Tab` as keyof Pick<TabData, 'activePanel2Tab' | 'activePanel3Tab'>;
     const internalTabs = activeTab[tabsKey] as InternalTab[];
     const activeInternalTabId = activeTab[activeKey] as string | null;
 
