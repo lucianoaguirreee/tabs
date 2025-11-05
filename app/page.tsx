@@ -26,42 +26,251 @@ const createNewTabData = (id: string, name: string): TabData => ({
   name,
   topRowColumnSplit: 50,
   rowSplit: 50,
-  panel1Tabs: [{
-    id: "p1-inicio",
-    name: "Inicio",
-    content: (
-      <div className="p-4">
-        <h2 className="text-2xl font-bold mb-4">Panel 1 - Inicio</h2>
-        <p className="mb-2">Este es el contenido de la tab Inicio del Panel 1</p>
-        <p className="text-sm opacity-70">Puedes arrastrar esta tab a otros paneles</p>
-      </div>
-    )
-  }],
-  panel2Tabs: [{
-    id: "p2-inicio",
-    name: "Inicio",
-    content: (
-      <div className="p-4">
-        <h2 className="text-2xl font-bold mb-4">Panel 2 - Inicio</h2>
-        <p className="mb-2">Este es el contenido de la tab Inicio del Panel 2</p>
-        <p className="text-sm opacity-70">Puedes arrastrar esta tab a otros paneles</p>
-      </div>
-    )
-  }],
-  panel3Tabs: [{
-    id: "p3-inicio",
-    name: "Inicio",
-    content: (
-      <div className="p-4">
-        <h2 className="text-2xl font-bold mb-4">Panel 3+4 - Inicio</h2>
-        <p className="mb-2">Este es el contenido de la tab Inicio del Panel 3+4</p>
-        <p className="text-sm opacity-70">Puedes arrastrar esta tab a otros paneles</p>
-      </div>
-    )
-  }],
-  activePanel1Tab: "p1-inicio",
-  activePanel2Tab: "p2-inicio",
-  activePanel3Tab: "p3-inicio",
+  panel1Tabs: [
+    {
+      id: "p1-dashboard",
+      name: "📊 Dashboard",
+      content: (
+        <div className="p-6 h-full">
+          <h1 className="text-3xl font-bold mb-6 text-white">Dashboard Principal</h1>
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-lg shadow-lg">
+              <div className="text-sm font-medium mb-2">Total Usuarios</div>
+              <div className="text-4xl font-bold">1,234</div>
+              <div className="text-xs mt-2 opacity-80">↑ 12% vs mes anterior</div>
+            </div>
+            <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-lg shadow-lg">
+              <div className="text-sm font-medium mb-2">Ingresos</div>
+              <div className="text-4xl font-bold">$45.2K</div>
+              <div className="text-xs mt-2 opacity-80">↑ 8% vs mes anterior</div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-lg shadow-lg">
+              <div className="text-sm font-medium mb-2">Proyectos</div>
+              <div className="text-4xl font-bold">32</div>
+              <div className="text-xs mt-2 opacity-80">↓ 2% vs mes anterior</div>
+            </div>
+          </div>
+          <div className="bg-zinc-800 bg-opacity-50 p-6 rounded-lg">
+            <h3 className="text-xl font-bold mb-4">Actividad Reciente</h3>
+            <div className="space-y-3">
+              {['Nuevo usuario registrado', 'Proyecto "Alpha" completado', 'Actualización del sistema', 'Backup realizado'].map((item, i) => (
+                <div key={i} className="flex items-center gap-3 p-3 bg-white bg-opacity-5 rounded">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span>{item}</span>
+                  <span className="ml-auto text-sm opacity-60">Hace {i + 1}h</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "p1-analytics",
+      name: "📈 Analytics",
+      content: (
+        <div className="p-6 h-full">
+          <h1 className="text-3xl font-bold mb-6 text-white">Analytics & Métricas</h1>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-zinc-800 bg-opacity-50 p-6 rounded-lg">
+              <h3 className="text-lg font-bold mb-4">Tráfico Mensual</h3>
+              <div className="space-y-2">
+                {[80, 65, 90, 75, 95, 70, 85].map((val, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-sm w-8">{i + 1}d</span>
+                    <div className="flex-1 bg-zinc-700 rounded-full h-6">
+                      <div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-6 rounded-full" style={{ width: `${val}%` }}></div>
+                    </div>
+                    <span className="text-sm w-12">{val}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-zinc-800 bg-opacity-50 p-6 rounded-lg">
+              <h3 className="text-lg font-bold mb-4">Distribución por País</h3>
+              <div className="space-y-3">
+                {[
+                  { country: 'Estados Unidos', percent: 45, color: 'bg-blue-500' },
+                  { country: 'España', percent: 25, color: 'bg-yellow-500' },
+                  { country: 'México', percent: 15, color: 'bg-green-500' },
+                  { country: 'Argentina', percent: 10, color: 'bg-cyan-500' },
+                  { country: 'Otros', percent: 5, color: 'bg-purple-500' }
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <span className="text-sm">{item.country}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 bg-zinc-700 rounded-full h-3">
+                        <div className={`${item.color} h-3 rounded-full`} style={{ width: `${item.percent}%` }}></div>
+                      </div>
+                      <span className="text-sm w-10 text-right">{item.percent}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+  ],
+  panel2Tabs: [
+    {
+      id: "p2-map",
+      name: "🗺️ Mapa",
+      content: (
+        <div className="h-full flex flex-col">
+          <div className="p-4 bg-zinc-800 bg-opacity-50 border-b border-white border-opacity-10">
+            <h1 className="text-2xl font-bold text-white mb-2">Vista del Mapa</h1>
+            <div className="flex gap-2">
+              <button className="px-3 py-1 bg-blue-500 rounded text-sm">Satélite</button>
+              <button className="px-3 py-1 bg-zinc-700 rounded text-sm">Terreno</button>
+              <button className="px-3 py-1 bg-zinc-700 rounded text-sm">Tráfico</button>
+            </div>
+          </div>
+          <div className="flex-1 relative bg-gradient-to-br from-green-900 via-green-700 to-blue-900">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-6xl mb-4">🗺️</div>
+                <div className="text-2xl font-bold mb-2">Mapa Interactivo</div>
+                <div className="text-sm opacity-70">Vista de ubicaciones en tiempo real</div>
+              </div>
+            </div>
+            {/* Marcadores simulados */}
+            <div className="absolute top-1/4 left-1/3 w-4 h-4 bg-red-500 rounded-full shadow-lg animate-pulse"></div>
+            <div className="absolute top-2/3 left-2/3 w-4 h-4 bg-red-500 rounded-full shadow-lg animate-pulse"></div>
+            <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-red-500 rounded-full shadow-lg animate-pulse"></div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "p2-settings",
+      name: "⚙️ Configuración",
+      content: (
+        <div className="p-6 h-full">
+          <h1 className="text-3xl font-bold mb-6 text-white">Configuración del Sistema</h1>
+          <div className="space-y-6 max-w-2xl">
+            <div className="bg-zinc-800 bg-opacity-50 p-6 rounded-lg">
+              <h3 className="text-lg font-bold mb-4">Perfil de Usuario</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm mb-2">Nombre</label>
+                  <input type="text" className="w-full bg-zinc-700 px-4 py-2 rounded" placeholder="Juan Pérez" />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2">Email</label>
+                  <input type="email" className="w-full bg-zinc-700 px-4 py-2 rounded" placeholder="juan@ejemplo.com" />
+                </div>
+              </div>
+            </div>
+            <div className="bg-zinc-800 bg-opacity-50 p-6 rounded-lg">
+              <h3 className="text-lg font-bold mb-4">Preferencias</h3>
+              <div className="space-y-3">
+                {['Notificaciones por email', 'Modo oscuro', 'Actualización automática', 'Compartir datos analíticos'].map((item, i) => (
+                  <label key={i} className="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" defaultChecked={i < 2} className="w-5 h-5" />
+                    <span>{item}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <button className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded font-medium">
+              Guardar Cambios
+            </button>
+          </div>
+        </div>
+      )
+    }
+  ],
+  panel3Tabs: [
+    {
+      id: "p3-files",
+      name: "📁 Archivos",
+      content: (
+        <div className="p-6 h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold text-white">Explorador de Archivos</h1>
+            <button className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded font-medium">
+              + Nuevo Archivo
+            </button>
+          </div>
+          <div className="bg-zinc-800 bg-opacity-50 rounded-lg overflow-hidden">
+            <div className="grid grid-cols-5 gap-4 p-4 bg-zinc-900 bg-opacity-50 font-bold border-b border-white border-opacity-10">
+              <div>Nombre</div>
+              <div>Tipo</div>
+              <div>Tamaño</div>
+              <div>Modificado</div>
+              <div>Estado</div>
+            </div>
+            <div className="divide-y divide-white divide-opacity-5">
+              {[
+                { name: 'Proyecto_Final.pdf', type: 'PDF', size: '2.4 MB', date: '12 Nov 2024', status: 'Listo' },
+                { name: 'Presentación.pptx', type: 'PowerPoint', size: '5.8 MB', date: '11 Nov 2024', status: 'Listo' },
+                { name: 'Datos_2024.xlsx', type: 'Excel', size: '892 KB', date: '10 Nov 2024', status: 'Procesando' },
+                { name: 'Imagen_Banner.png', type: 'Imagen', size: '1.2 MB', date: '09 Nov 2024', status: 'Listo' },
+                { name: 'Video_Tutorial.mp4', type: 'Video', size: '45.6 MB', date: '08 Nov 2024', status: 'Listo' },
+                { name: 'Backup_Sistema.zip', type: 'Archivo', size: '128 MB', date: '07 Nov 2024', status: 'Listo' },
+              ].map((file, i) => (
+                <div key={i} className="grid grid-cols-5 gap-4 p-4 hover:bg-white hover:bg-opacity-5 cursor-pointer transition">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">📄</span>
+                    <span>{file.name}</span>
+                  </div>
+                  <div className="flex items-center text-sm opacity-70">{file.type}</div>
+                  <div className="flex items-center text-sm opacity-70">{file.size}</div>
+                  <div className="flex items-center text-sm opacity-70">{file.date}</div>
+                  <div className="flex items-center">
+                    <span className={`px-3 py-1 rounded-full text-xs ${
+                      file.status === 'Listo' ? 'bg-green-500 bg-opacity-20 text-green-300' : 'bg-yellow-500 bg-opacity-20 text-yellow-300'
+                    }`}>
+                      {file.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "p3-team",
+      name: "👥 Equipo",
+      content: (
+        <div className="p-6 h-full">
+          <h1 className="text-3xl font-bold mb-6 text-white">Gestión de Equipo</h1>
+          <div className="grid grid-cols-3 gap-6">
+            {[
+              { name: 'María González', role: 'CEO', avatar: '👩‍💼', status: 'online' },
+              { name: 'Carlos Ruiz', role: 'CTO', avatar: '👨‍💻', status: 'online' },
+              { name: 'Ana Martínez', role: 'Diseñadora', avatar: '👩‍🎨', status: 'away' },
+              { name: 'Pedro López', role: 'Desarrollador', avatar: '👨‍💻', status: 'online' },
+              { name: 'Laura Sánchez', role: 'Marketing', avatar: '👩‍💼', status: 'offline' },
+              { name: 'Diego Torres', role: 'Ventas', avatar: '👨‍💼', status: 'online' },
+            ].map((member, i) => (
+              <div key={i} className="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-lg shadow-lg hover:scale-105 transition-transform">
+                <div className="text-center">
+                  <div className="text-6xl mb-3">{member.avatar}</div>
+                  <h3 className="text-lg font-bold mb-1">{member.name}</h3>
+                  <p className="text-sm opacity-70 mb-3">{member.role}</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${
+                      member.status === 'online' ? 'bg-green-400' :
+                      member.status === 'away' ? 'bg-yellow-400' : 'bg-gray-400'
+                    }`}></div>
+                    <span className="text-xs capitalize">{member.status}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+  ],
+  activePanel1Tab: "p1-dashboard",
+  activePanel2Tab: "p2-map",
+  activePanel3Tab: "p3-files",
 });
 
 export default function Home() {
@@ -245,30 +454,35 @@ export default function Home() {
         onDrop={() => handleDrop(panelId)}
       >
         {/* Tab bar */}
-        <div className="flex items-center gap-1 bg-black bg-opacity-30 px-2 py-1">
+        <div className="flex items-center gap-1 bg-black bg-opacity-50 px-2 py-1 border-b-2 border-white border-opacity-10">
           {internalTabs.map((tab) => (
             <div
               key={tab.id}
               draggable
               onDragStart={() => handleDragStart(tab, panelId)}
               onClick={() => setActiveInternalTab(panelId, tab.id)}
-              className={`group flex items-center gap-2 px-3 py-1.5 rounded-t cursor-move transition-all ${
+              className={`group relative flex items-center gap-2 px-4 py-2 rounded-t cursor-move transition-all ${
                 activeInternalTabId === tab.id
-                  ? "bg-white bg-opacity-20 text-white"
-                  : "bg-white bg-opacity-5 text-white text-opacity-70 hover:bg-opacity-10"
+                  ? "bg-white bg-opacity-25 text-white font-semibold shadow-lg scale-105"
+                  : "bg-white bg-opacity-5 text-white text-opacity-60 hover:bg-opacity-15 hover:text-opacity-90"
               }`}
             >
-              <span className="text-xs font-medium select-none">{tab.name}</span>
+              {activeInternalTabId === tab.id && (
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white rounded-t-full"></div>
+              )}
+              <span className={`text-sm select-none ${activeInternalTabId === tab.id ? 'font-bold' : 'font-medium'}`}>
+                {tab.name}
+              </span>
               {internalTabs.length > 1 && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     closeInternalTab(panelId, tab.id);
                   }}
-                  className="opacity-0 group-hover:opacity-100 hover:bg-white hover:bg-opacity-20 rounded p-0.5 transition-opacity"
+                  className="opacity-0 group-hover:opacity-100 hover:bg-white hover:bg-opacity-30 rounded-full p-1 transition-opacity"
                   title="Cerrar tab"
                 >
-                  <span className="text-[10px]">✕</span>
+                  <span className="text-[10px] font-bold">✕</span>
                 </button>
               )}
             </div>
@@ -276,7 +490,7 @@ export default function Home() {
         </div>
 
         {/* Content area */}
-        <div className="flex-1 overflow-auto bg-white bg-opacity-10 text-white">
+        <div className="flex-1 overflow-auto bg-zinc-900 bg-opacity-40 text-white">
           {activeInternalTabId && (
             <>
               {internalTabs.find((tab) => tab.id === activeInternalTabId)?.content}
