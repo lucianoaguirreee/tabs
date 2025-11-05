@@ -504,13 +504,13 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen w-full flex-col bg-zinc-900">
+    <div className="flex h-full w-full flex-col bg-zinc-900 overflow-hidden">
       {/* Grid principal */}
-      <div className="flex-1 p-4 pb-0">
-        <div ref={containerRef} className="relative h-full flex flex-col gap-2">
+      <div className="flex-1 p-4 pb-0 overflow-hidden">
+        <div ref={containerRef} className="relative h-full w-full flex flex-col gap-2">
           {/* Fila superior: 1 y 2 separadas */}
-          <div ref={topRowRef} className="relative flex gap-2" style={{ height: `${activeTab.rowSplit}%` }}>
-            <div style={{ width: `${activeTab.topRowColumnSplit}%` }}>
+          <div ref={topRowRef} className="relative flex gap-2 overflow-hidden" style={{ height: `${activeTab.rowSplit}%` }}>
+            <div className="overflow-hidden" style={{ width: `${activeTab.topRowColumnSplit}%` }}>
               {renderTab(1, "1")}
             </div>
             <div
@@ -518,7 +518,7 @@ export default function Home() {
               style={{ left: `${activeTab.topRowColumnSplit}%` }}
               onMouseDown={() => setIsDraggingTopRowVertical(true)}
             />
-            <div style={{ width: `${100 - activeTab.topRowColumnSplit}%` }}>
+            <div className="overflow-hidden" style={{ width: `${100 - activeTab.topRowColumnSplit}%` }}>
               {renderTab(2, "2")}
             </div>
           </div>
@@ -531,14 +531,14 @@ export default function Home() {
           />
 
           {/* Fila inferior: 3+4 juntas */}
-          <div style={{ height: `${100 - activeTab.rowSplit}%` }}>
+          <div className="overflow-hidden" style={{ height: `${100 - activeTab.rowSplit}%` }}>
             {renderTab(3, "3 + 4")}
           </div>
         </div>
       </div>
 
       {/* Bottom Tabs */}
-      <div className="flex items-center gap-1 bg-zinc-800 px-2 py-1 border-t border-zinc-700">
+      <div className="flex items-center gap-1 bg-zinc-800 px-2 py-1 border-t border-zinc-700 flex-shrink-0">
         {tabs.map((tab) => (
           <button
             key={tab.id}
