@@ -454,14 +454,13 @@ export default function Home() {
         onDrop={() => handleDrop(panelId)}
       >
         {/* Tab bar */}
-        <div className="flex items-center gap-1 bg-black bg-opacity-50 px-2 py-1 border-b-2 border-white border-opacity-10">
+        <div className="flex items-center gap-1 bg-black bg-opacity-50 px-2 py-1.5 border-b-2 border-white border-opacity-10">
           {internalTabs.map((tab) => (
             <div
               key={tab.id}
               draggable
               onDragStart={() => handleDragStart(tab, panelId)}
-              onClick={() => setActiveInternalTab(panelId, tab.id)}
-              className={`group relative flex items-center gap-2 px-4 py-2 rounded-t cursor-move transition-all ${
+              className={`group relative flex items-center gap-4 px-4 py-2.5 rounded-t cursor-move transition-all ${
                 activeInternalTabId === tab.id
                   ? "bg-white bg-opacity-25 text-white font-semibold shadow-lg scale-105"
                   : "bg-white bg-opacity-5 text-white text-opacity-60 hover:bg-opacity-15 hover:text-opacity-90"
@@ -470,7 +469,10 @@ export default function Home() {
               {activeInternalTabId === tab.id && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-white rounded-t-full"></div>
               )}
-              <span className={`text-sm select-none ${activeInternalTabId === tab.id ? 'font-bold' : 'font-medium'}`}>
+              <span
+                onClick={() => setActiveInternalTab(panelId, tab.id)}
+                className={`text-base select-none ${activeInternalTabId === tab.id ? 'font-bold' : 'font-medium'} flex-shrink-0`}
+              >
                 {tab.name}
               </span>
               {internalTabs.length > 1 && (
@@ -479,10 +481,10 @@ export default function Home() {
                     e.stopPropagation();
                     closeInternalTab(panelId, tab.id);
                   }}
-                  className="opacity-0 group-hover:opacity-100 hover:bg-white hover:bg-opacity-30 rounded-full p-1 transition-opacity"
+                  className="opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:bg-opacity-80 bg-red-600 bg-opacity-60 rounded-full p-1.5 transition-all ml-2 flex-shrink-0"
                   title="Cerrar tab"
                 >
-                  <span className="text-[10px] font-bold">✕</span>
+                  <span className="text-xs font-bold leading-none">✕</span>
                 </button>
               )}
             </div>
